@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "InputMappingContext.h"
 #include "WeaponSystemCharacter.generated.h"
 
 class UInputComponent;
@@ -12,6 +13,7 @@ class USkeletalMeshComponent;
 class UCameraComponent;
 class UInputAction;
 struct FInputActionValue;
+class AWeaponBase;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -30,7 +32,7 @@ class AWeaponSystemCharacter : public ACharacter
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
-
+	
 protected:
 
 	/** Jump Input Action */
@@ -47,12 +49,22 @@ protected:
 
 	/** Mouse Look Input Action */
 	UPROPERTY(EditAnywhere, Category ="Input")
-	class UInputAction* MouseLookAction;
+	class UInputAction* MouseLookAction;	
+	
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> FireAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> ReloadAction;
+	
+	UPROPERTY()
+	TObjectPtr<AWeaponBase> EquippedWeapon;	
 	
 public:
 	AWeaponSystemCharacter();
-
 protected:
+	void OnFirePressed();
+	void OnReloadPressed();
 
 	/** Called from Input Actions for movement input */
 	void MoveInput(const FInputActionValue& Value);
@@ -83,12 +95,20 @@ protected:
 	
 
 public:
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TSubclassOf<AWeaponBase> StartingWeaponClass;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	FName WeaponAttachSocketName = "WeaponSocket";
+	
 	/** Returns the first person mesh **/
 	USkeletalMeshComponent* GetFirstPersonMesh() const { return FirstPersonMesh; }
 
 	/** Returns first person camera component **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
-
+	
+	void BeginPlay() override;
 };
 

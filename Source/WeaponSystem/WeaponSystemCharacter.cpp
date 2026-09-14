@@ -1,14 +1,18 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "WeaponSystemCharacter.h"
-#include "Animation/AnimInstance.h"
+#include "WeaponBase.h" 
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "WeaponsAbilitySystemComponent.h"
 #include "WeaponSystem.h"
+#include "WeaponSystemPlayerController.h"
+#include "Data/WeaponTags.h"
 
 AWeaponSystemCharacter::AWeaponSystemCharacter()
 {
@@ -59,6 +63,12 @@ void AWeaponSystemCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		// Looking/Aiming
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AWeaponSystemCharacter::LookInput);
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AWeaponSystemCharacter::LookInput);
+		
+		// Left mouse button -> Fire. IA_Fire should be bound to Left Mouse Button in its Input Action asset.
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AWeaponSystemCharacter::OnFirePressed);
+
+		// R -> Reload. IA_Reload should be bound to the R key.
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AWeaponSystemCharacter::OnReloadPressed);
 	}
 	else
 	{
@@ -66,6 +76,54 @@ void AWeaponSystemCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 	}
 }
 
+void AWeaponSystemCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (AWeaponSystemPlayerController* PC = Cast<AWeaponSystemPlayerController>(GetController()))
+        {
+            if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+                ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+            {
+                Subsystem->AddMappingContext(DefaultMappingContext, 0);
+            }
+        }
+    
+        if (StartingWeaponClass)
+        {
+            FActorSpawnParameters SpawnParams;
+            SpawnParams.Owner = this;
+            SpawnParams.Instigator = this;
+            SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    
+            EquippedWeapon = GetWorld()->SpawnActor<AWeaponBase>(StartingWeaponClass, GetActorTransform(), SpawnParams);
+        	EquippedWeapon->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+        }
+}
+
+void AWeaponSystemCharacter::OnFirePressed()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnFirePressed called. EquippedWeapon = %s"), *GetNameSafe(EquippedWeapon));
+
+	if (EquippedWeapon)
+	{
+		if (UAbilitySystemComponent* ASC = EquippedWeapon->GetAbilitySystemComponent())
+		{
+			ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(WeaponTags::Ability_Weapon_Fire.GetTag()));
+		}
+	}
+}
+
+void AWeaponSystemCharacter::OnReloadPressed()
+{
+	if (EquippedWeapon)
+	{
+		if (UAbilitySystemComponent* ASC = EquippedWeapon->GetAbilitySystemComponent())
+		{
+			ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(WeaponTags::Ability_Weapon_Reload.GetTag()));
+		}
+	}
+}
 
 void AWeaponSystemCharacter::MoveInput(const FInputActionValue& Value)
 {

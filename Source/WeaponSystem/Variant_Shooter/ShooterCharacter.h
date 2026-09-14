@@ -33,7 +33,7 @@ protected:
 
 	/** Fire weapon input action */
 	UPROPERTY(EditAnywhere, Category ="Input")
-	UInputAction* FireAction;
+	UInputAction* FireAction1;
 
 	/** Switch weapon input action */
 	UPROPERTY(EditAnywhere, Category ="Input")
