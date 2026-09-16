@@ -6,8 +6,6 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 
-namespace { const FName SetByCaller_CooldownDuration("Data.Cooldown.Duration"); }
-
 UGA_ReloadWeapon::UGA_ReloadWeapon()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -97,7 +95,7 @@ void UGA_ReloadWeapon::ApplyReloadCooldown(AWeaponBase* Weapon)
 
     if (Spec.IsValid())
     {
-        Spec.Data->SetSetByCallerMagnitude(SetByCaller_CooldownDuration, PostReloadCooldown);
+        Spec.Data->SetSetByCallerMagnitude(WeaponTags::SetByCaller_CooldownDuration, PostReloadCooldown);
         ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data);
     }
 }

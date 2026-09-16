@@ -25,4 +25,6 @@ namespace WeaponTags
 
 	// Damage / hit event
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Hit);
+	
+	extern const FName SetByCaller_CooldownDuration;
 }

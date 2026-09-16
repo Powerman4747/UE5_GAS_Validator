@@ -16,4 +16,6 @@ namespace WeaponTags
 	UE_DEFINE_GAMEPLAY_TAG(Fail_Weapon_Reloading,      "Fail.Weapon.Reloading");
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_Weapon_Hit,           "Event.Weapon.Hit");
+	
+	const FName SetByCaller_CooldownDuration("Data.Cooldown.Duration");
 }

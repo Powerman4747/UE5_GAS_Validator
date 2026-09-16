@@ -1,14 +1,12 @@
 ﻿#include "GE_Weapon_Cooldown.h"
 #include "Data/WeaponTags.h"
 
-namespace { const FName SetByCaller_CooldownDuration("Data.Cooldown.Duration"); }
-
 UGE_Weapon_FireCooldown::UGE_Weapon_FireCooldown()
 {
 	DurationPolicy = EGameplayEffectDurationType::HasDuration;
 
 	FSetByCallerFloat SetByCallerMagnitude;
-	SetByCallerMagnitude.DataName = SetByCaller_CooldownDuration;
+	SetByCallerMagnitude.DataName = WeaponTags::SetByCaller_CooldownDuration;
 	DurationMagnitude = FGameplayEffectModifierMagnitude(SetByCallerMagnitude);
 
 	FInheritedTagContainer TagContainer;
@@ -21,7 +19,7 @@ UGE_Weapon_ReloadCooldown::UGE_Weapon_ReloadCooldown()
 	DurationPolicy = EGameplayEffectDurationType::HasDuration;
 
 	FSetByCallerFloat SetByCallerMagnitude;
-	SetByCallerMagnitude.DataName = SetByCaller_CooldownDuration;
+	SetByCallerMagnitude.DataName = WeaponTags::SetByCaller_CooldownDuration;
 	DurationMagnitude = FGameplayEffectModifierMagnitude(SetByCallerMagnitude);
 
 	FInheritedTagContainer TagContainer;

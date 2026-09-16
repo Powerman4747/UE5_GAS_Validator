@@ -103,8 +103,6 @@ void AWeaponSystemCharacter::BeginPlay()
 
 void AWeaponSystemCharacter::OnFirePressed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnFirePressed called. EquippedWeapon = %s"), *GetNameSafe(EquippedWeapon));
-
 	if (EquippedWeapon)
 	{
 		if (UAbilitySystemComponent* ASC = EquippedWeapon->GetAbilitySystemComponent())
