@@ -9,16 +9,27 @@
 /**
  * 
  */
+
+class UAttributeSet;
+
+struct GASObjects
+{
+	TArray<TObjectPtr<UAttributeSet>> AttributeSets;
+};
+
 UCLASS()
 class GAMEPLAYVALIDATOR_API UGASValidator : public UEditorValidatorBase
 {
 	GENERATED_BODY()
 public:
+	UGASValidator();
 	static void RunValidator();
-	EDataValidationResult ValidateLoadedAsset(const FAssetData& InAssetData, UObject* InAsset, FDataValidationContext& Context);
+	
+	bool CanValidateAsset_Implementation(const FAssetData& InAssetData, UObject* InObject, FDataValidationContext& InContext) const override;
+	EDataValidationResult ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset, FDataValidationContext& Context) override;
 	
 private:
-	TArray<UObject*> FindGASRelatedFields(UClass* Class);
+	GASObjects FindGASRelatedFields(UObject* Class) const;
 	
 };
 
