@@ -10,20 +10,15 @@
 #include "GameplayTagContainer.h"
 #include "Editor.h"
 
-UGASValidator::UGASValidator()
-{
-	UE_LOG(LogGASValidator, Warning, TEXT("UGASValidator instance constructed"));
-}
-
 void UGASValidator::RunValidator()
 {
-	UE_LOG(LogGASValidator, Log, TEXT( "GAs Validator started" ));
+	UE_LOG(LogGASValidator, Log, TEXT( "GAS Validator started" ));
 
 	UEditorValidatorSubsystem* ValidatorSubsystem = 
 	GEditor->GetEditorSubsystem<UEditorValidatorSubsystem>();
 
 	FValidateAssetsSettings Settings;
-	Settings.bShowIfNoFailures = true;
+	Settings.bShowIfNoFailures = false;
 
 	FAssetRegistryModule& AssetRegistryModule =
 		FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
@@ -72,13 +67,12 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 			}
 		}
 	}
-	
-	return 	EDataValidationResult::NotValidated;
+	AssetPasses(InAsset);
+	return 	EDataValidationResult::Valid;
 }
 
 GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 {
-	UE_LOG(LogGASValidator, Warning, TEXT("Instance class: %s"), *Class->GetClass()->GetName());
 	GASObjects Objects;
 	
 	if (UBlueprint* Blueprint = Cast<UBlueprint>(Class))

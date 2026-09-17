@@ -22,7 +22,7 @@ public class WeaponSystem : ModuleRules
 		});
 
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayAbilities", "GameplayTags", "GameplayTasks" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayAbilities", "GameplayTags", "GameplayTasks", "GameplayValidator", "ModularWeaponSystem" });
 
 		PublicIncludePaths.AddRange(new string[] {
 			"WeaponSystem",

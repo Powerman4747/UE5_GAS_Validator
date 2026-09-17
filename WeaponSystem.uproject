@@ -35,6 +35,7 @@
 		{
 			"Name": "GameplayAbilities",
 			"Enabled": true
-		}
+		},
+		{ "Name": "GameplayValidator", "Enabled": true }
 	]
 }

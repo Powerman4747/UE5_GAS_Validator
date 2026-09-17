@@ -3,11 +3,14 @@
 #include "GameplayValidator.h"
 
 #include "GASValidator.h"
+#include "GASValidatorLog.h"
 
 #define LOCTEXT_NAMESPACE "FGameplayValidatorModule"
 
 void FGameplayValidatorModule::StartupModule()
 {
+	UE_LOG(LogGASValidator, Log, TEXT("GameplayValidator module loaded"));
+
 	// Register a function to be called when menu system is initialized
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(
 		this, &FGameplayValidatorModule::AddValidationButton));}

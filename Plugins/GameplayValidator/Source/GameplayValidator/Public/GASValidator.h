@@ -22,7 +22,6 @@ class GAMEPLAYVALIDATOR_API UGASValidator : public UEditorValidatorBase
 {
 	GENERATED_BODY()
 public:
-	UGASValidator();
 	static void RunValidator();
 	
 	bool CanValidateAsset_Implementation(const FAssetData& InAssetData, UObject* InObject, FDataValidationContext& InContext) const override;

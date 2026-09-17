@@ -17,7 +17,6 @@ public class GameplayValidator : ModuleRules
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				"GASValidatorLog"
 			}
 			);
 			
