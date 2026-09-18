@@ -8,17 +8,22 @@
 #include "Abilities/GameplayAbility.h"
 #include "GameplayEffect.h"
 #include "GameplayTagContainer.h"
+#include "Engine/Blueprint.h"
 #include "Editor.h"
+#include "GASValidationRule.h"
+#include "NonZeroValidationRule.h"
+
+TArray<TSharedRef<IGASValidationRule>> UGASValidator::Rules;
 
 void UGASValidator::RunValidator()
 {
-	UE_LOG(LogGASValidator, Log, TEXT( "GAS Validator started" ));
+	UE_LOG(LogGASValidator, Log, TEXT("GAS Validator started"));
 
-	UEditorValidatorSubsystem* ValidatorSubsystem = 
-	GEditor->GetEditorSubsystem<UEditorValidatorSubsystem>();
+	UEditorValidatorSubsystem* ValidatorSubsystem = GEditor->GetEditorSubsystem<UEditorValidatorSubsystem>();
 
+	Rules.Add(MakeShared<NonZeroValidationRule>());
 	FValidateAssetsSettings Settings;
-	Settings.bShowIfNoFailures = false;
+	Settings.bShowIfNoFailures = true;
 
 	FAssetRegistryModule& AssetRegistryModule =
 		FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
@@ -32,8 +37,7 @@ void UGASValidator::RunValidator()
 	}
 	
 	FValidateAssetsResults Results;
-	ValidatorSubsystem->ValidateAssetsWithSettings(
-		AssetDataList, Settings, Results);
+	ValidatorSubsystem->ValidateAssetsWithSettings(AssetDataList, Settings, Results);
 	
 	UE_LOG(LogGASValidator, Log, TEXT("GAS Validator ended"));
 }
@@ -41,6 +45,13 @@ void UGASValidator::RunValidator()
 bool UGASValidator::CanValidateAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset,
 	FDataValidationContext& InContext) const
 {
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+	{
+		if (Blueprint->GeneratedClass)
+		{
+			InAsset = Blueprint->GeneratedClass->GetDefaultObject();
+		}
+	}
 	auto GASObjects = this->FindGASRelatedFields(InAsset);
 	
 	return !GASObjects.AttributeSets.IsEmpty();
@@ -49,23 +60,23 @@ bool UGASValidator::CanValidateAsset_Implementation(const FAssetData& InAssetDat
 EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset,
                                                          FDataValidationContext& Context)
 {
-	auto GASRelatedFields = FindGASRelatedFields(InAsset);
-	
-	for (UAttributeSet* Field: GASRelatedFields.AttributeSets)
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
 	{
-		for (TFieldIterator<FProperty> It(Field->GetClass()); It; ++It)
+		if (Blueprint->GeneratedClass)
 		{
-			if (FStructProperty* StructProperty = CastField<FStructProperty>(*It))
-			{
-				if (StructProperty->Struct == FGameplayAttributeData::StaticStruct())
-				{
-					FGameplayAttributeData* AttrData = StructProperty->ContainerPtrToValuePtr<FGameplayAttributeData>(Field);
-					const float Base = AttrData->GetBaseValue();
-					UE_LOG(LogGASValidator, Log, TEXT("%s: Base=%.2f"), *StructProperty->GetName(), Base);
-
-				}
-			}
+			InAsset = Blueprint->GeneratedClass->GetDefaultObject();
 		}
+	}
+	auto GASRelatedFields = FindGASRelatedFields(InAsset);
+	TArray<GASValidationResult> Results;
+	for (auto Rule : Rules)
+	{
+		Rule->Validate(InAsset, Results);
+	}
+	
+	for (auto Result : Results)
+	{
+		UE_LOG(LogGASValidator, Log, TEXT("%s"), *Result.Message)
 	}
 	AssetPasses(InAsset);
 	return 	EDataValidationResult::Valid;
@@ -74,18 +85,6 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 {
 	GASObjects Objects;
-	
-	if (UBlueprint* Blueprint = Cast<UBlueprint>(Class))
-	{
-		if (Blueprint->GeneratedClass)
-		{
-			Class = Blueprint->GeneratedClass->GetDefaultObject();
-		}
-		else
-		{
-			return Objects; // no generated class yet (e.g. Blueprint has compile errors)
-		}
-	}
 
 	if (!Class)
 	{

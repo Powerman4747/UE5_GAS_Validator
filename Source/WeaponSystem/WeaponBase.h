@@ -26,6 +26,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TObjectPtr<UWeaponAttributeSet> WeaponAttributeSet;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TObjectPtr<UDataTable> WeaponDataTable;
 
 	/** Row name inside WeaponDataTable, e.g. "Pistol" */
@@ -39,11 +43,7 @@ protected:
 	TObjectPtr<USceneComponent> WeaponRoot;
 
 private:
-	UPROPERTY()
-	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
-
-	UPROPERTY()
-	TObjectPtr<UWeaponAttributeSet> WeaponAttributeSet;
+	
 
 	FGASWeaponTableRow WeaponConfig;
 
