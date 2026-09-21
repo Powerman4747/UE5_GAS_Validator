@@ -16,9 +16,8 @@ class GAMEPLAYVALIDATOR_API NonZeroValidationRule : public IGASValidationRule
 {
 public:
 	NonZeroValidationRule();
-	void Validate(UObject* Asset, TArray<GASValidationResult>& Results) override final;
+	void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
 	
 private:
 	void ValidateAttributeSet(const FAttributeDefaults& Default, TArray<GASValidationResult>& Results);
-	GASObjects FindGASRelatedFields(UObject* Class);
 };

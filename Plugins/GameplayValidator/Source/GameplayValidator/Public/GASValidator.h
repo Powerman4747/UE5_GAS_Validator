@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AttributeSet.h"
 #include "EditorValidatorBase.h"
 #include "GASValidator.generated.h"
 
@@ -12,10 +13,19 @@
 
 class UAttributeSet;
 class IGASValidationRule;
+class UAbilitySystemComponent;
+
+struct FDiscoveredAttribute
+{
+	FGameplayAttribute Attribute; 
+	TOptional<FName> SourceOfValue;
+	TOptional<float> Value;
+	TMap<FName, FString> Metadata;
+};
 
 struct GASObjects
 {
-	TArray<TObjectPtr<UAttributeSet>> AttributeSets;
+	TArray<FDiscoveredAttribute> Attributes;
 };
 
 UCLASS()
@@ -29,6 +39,7 @@ public:
 	
 private:
 	GASObjects FindGASRelatedFields(UObject* Class) const;
+	TArray<FDiscoveredAttribute> FindAttributes(UAbilitySystemComponent* ASC, UClass* Class) const;
 	static TArray<TSharedRef<IGASValidationRule>> Rules;
 };
 

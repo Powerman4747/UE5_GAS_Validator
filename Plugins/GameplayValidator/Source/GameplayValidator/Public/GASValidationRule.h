@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 
+struct GASObjects;
 class UObject; 
 
 enum class EGASValidationSeverity
@@ -25,7 +26,7 @@ class GAMEPLAYVALIDATOR_API IGASValidationRule
 public:
 	IGASValidationRule(FString Name);
 	FString GetRuleName();
-	virtual void Validate(UObject* Asset, TArray<GASValidationResult>& Results) = 0;
+	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) = 0;
 	virtual ~IGASValidationRule() {};
 	
 private:

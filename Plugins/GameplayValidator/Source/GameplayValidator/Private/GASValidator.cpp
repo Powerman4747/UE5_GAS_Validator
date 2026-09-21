@@ -1,13 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GASValidator.h"
+
+#include "AbilitySystemInterface.h"
 #include "GASValidatorLog.h"
 #include "EditorValidatorSubsystem.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AttributeSet.h"
-#include "Abilities/GameplayAbility.h"
-#include "GameplayEffect.h"
-#include "GameplayTagContainer.h"
+#include "AbilitySystemComponent.h"
+
 #include "Engine/Blueprint.h"
 #include "Editor.h"
 #include "GASValidationRule.h"
@@ -21,7 +22,11 @@ void UGASValidator::RunValidator()
 
 	UEditorValidatorSubsystem* ValidatorSubsystem = GEditor->GetEditorSubsystem<UEditorValidatorSubsystem>();
 
-	Rules.Add(MakeShared<NonZeroValidationRule>());
+	if (Rules.IsEmpty())
+	{
+		Rules.Add(MakeShared<NonZeroValidationRule>());
+	}
+	
 	FValidateAssetsSettings Settings;
 	Settings.bShowIfNoFailures = true;
 
@@ -54,7 +59,7 @@ bool UGASValidator::CanValidateAsset_Implementation(const FAssetData& InAssetDat
 	}
 	auto GASObjects = this->FindGASRelatedFields(InAsset);
 	
-	return !GASObjects.AttributeSets.IsEmpty();
+	return !GASObjects.Attributes.IsEmpty();
 }
 
 EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset,
@@ -68,27 +73,54 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 		}
 	}
 	auto GASRelatedFields = FindGASRelatedFields(InAsset);
+	
 	TArray<GASValidationResult> Results;
 	for (auto Rule : Rules)
 	{
-		Rule->Validate(InAsset, Results);
+		Rule->Validate(GASRelatedFields, Results);
 	}
 	
+	bool bHasError = false;
 	for (auto Result : Results)
 	{
 		UE_LOG(LogGASValidator, Log, TEXT("%s"), *Result.Message)
+		
+		if (Result.Severity == EGASValidationSeverity::ERROR)
+		{
+			bHasError = true;
+		}
 	}
+	
+	if (bHasError)
+	{
+		AssetFails(InAsset, FText::FromString(TEXT("GAS validation failed - see errors above")));
+		return EDataValidationResult::Invalid;
+	}
+		
 	AssetPasses(InAsset);
 	return 	EDataValidationResult::Valid;
 }
 
 GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 {
+	bool bHasASC = false;
 	GASObjects Objects;
 
 	if (!Class)
 	{
 		return Objects;
+	}
+	
+	AActor* Actor = Cast<AActor>(Class);
+	IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Actor);
+	UAbilitySystemComponent* ASC = nullptr;
+	if (Actor && ASI)
+	{
+		ASC = ASI->GetAbilitySystemComponent();
+		if (ASC)
+		{
+			bHasASC = true;
+		}
 	}
 	
 	for (TFieldIterator<FProperty> PropertyIterator(Class->GetClass()); PropertyIterator; ++PropertyIterator)
@@ -102,10 +134,12 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 				UObject* ClassValue = ClassProperty->GetObjectPropertyValue_InContainer(Class);
 				if (UClass* Class = Cast<UClass>(ClassValue))
 				{
-					if (UAttributeSet* CDO = Cast<UAttributeSet>(Class->GetDefaultObject()))
+					/*if (UAttributeSet* CDO = Cast<UAttributeSet>(Class->GetDefaultObject()))
 					{
 						Objects.AttributeSets.Add(CDO);
-					}
+					}*/
+					
+					Objects.Attributes.Append(this->FindAttributes(ASC, Class));
 				}
 			}
 		}
@@ -114,14 +148,74 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 			if (ObjectProperty->PropertyClass->IsChildOf(UAttributeSet::StaticClass()))
 			{
 				UObject* Value = ObjectProperty->GetObjectPropertyValue_InContainer(Class);
-				if (UAttributeSet* AttributeSet = Cast<UAttributeSet>(Value))
+				/*if (UAttributeSet* AttributeSet = Cast<UAttributeSet>(Value))
 				{
 					Objects.AttributeSets.Add(AttributeSet);
-				}
+				}*/
+				Objects.Attributes.Append(this->FindAttributes(ASC, Value->GetClass()));
+
 			}
 		}
 	}
 	
 	return Objects;
+}
+
+TArray<FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystemComponent* ASC, UClass* Class) const
+{
+	TArray<FDiscoveredAttribute> Attributes;
+	
+	UDataTable* MetaTable = nullptr;
+	if (!ASC->DefaultStartingData.IsEmpty())
+	{
+		
+		for (auto Defaults : ASC->DefaultStartingData)
+		{
+			if (Defaults.Attributes.Get() == Class)
+			{
+				MetaTable = Defaults.DefaultStartingTable;
+				break;
+			}
+		}
+	}	
+	
+	for (TFieldIterator<FStructProperty> PropIt(Class); PropIt; ++PropIt)
+	{							
+		FStructProperty* StructProp = *PropIt;
+		if (StructProp->Struct != FGameplayAttributeData::StaticStruct())
+		{
+			continue;
+		}
+						
+		FDiscoveredAttribute DiscoveredAttribute;
+		DiscoveredAttribute.Attribute = FGameplayAttribute(StructProp);
+		if (auto MetaData = StructProp->GetMetaDataMap())
+        {
+        	DiscoveredAttribute.Metadata = *MetaData;
+        }
+		
+		if (!MetaTable)
+		{
+			Attributes.Add(DiscoveredAttribute);
+			continue;
+		}
+		DiscoveredAttribute.SourceOfValue = MetaTable->GetFName();
+
+		//Get value
+		const FName AttributeName = StructProp->GetFName();
+		const FString RowNameString = FString::Printf(TEXT("%s.%s"), *Class->GetName(), *AttributeName.ToString());
+		const FName RowName(*RowNameString);
+		const FAttributeMetaData* Row = MetaTable->FindRow<FAttributeMetaData>(RowName, TEXT("GASValidator"));
+						
+		if (Row)
+		{
+			float BaseValue = Row->BaseValue;
+			DiscoveredAttribute.Value = BaseValue;
+		}
+		
+		Attributes.Add(DiscoveredAttribute);
+	}
+	
+	return Attributes;
 }
 

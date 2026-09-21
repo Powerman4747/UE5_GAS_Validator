@@ -14,7 +14,7 @@ class WEAPONSYSTEM_API UWeaponAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(BlueprintReadOnly, Category = "Weapon|Ammo")
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon|Ammo", meta = (AllowsZero))
 	FGameplayAttributeData CurrentAmmo;
 	ATTRIBUTE_ACCESSORS(UWeaponAttributeSet, CurrentAmmo)
 
