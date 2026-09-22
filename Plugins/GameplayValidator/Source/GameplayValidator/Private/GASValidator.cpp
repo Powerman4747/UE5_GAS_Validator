@@ -103,7 +103,6 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 
 GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 {
-	bool bHasASC = false;
 	GASObjects Objects;
 
 	if (!Class)
@@ -112,14 +111,14 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 	}
 	
 	AActor* Actor = Cast<AActor>(Class);
-	IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Actor);
+	
 	UAbilitySystemComponent* ASC = nullptr;
-	if (Actor && ASI)
+	if (Actor)
 	{
-		ASC = ASI->GetAbilitySystemComponent();
-		if (ASC)
+		IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Actor);
+		if (ASI)
 		{
-			bHasASC = true;
+			ASC = ASI->GetAbilitySystemComponent();
 		}
 	}
 	
@@ -138,8 +137,10 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 					{
 						Objects.AttributeSets.Add(CDO);
 					}*/
-					
-					Objects.Attributes.Append(this->FindAttributes(ASC, Class));
+					if (ASC)
+					{
+						Objects.Attributes.Append(this->FindAttributes(ASC, Class));
+					}
 				}
 			}
 		}
@@ -152,8 +153,11 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 				{
 					Objects.AttributeSets.Add(AttributeSet);
 				}*/
-				Objects.Attributes.Append(this->FindAttributes(ASC, Value->GetClass()));
-
+				
+				if (ASC)
+				{
+					Objects.Attributes.Append(this->FindAttributes(ASC, Value->GetClass()));
+				}
 			}
 		}
 	}
@@ -218,4 +222,3 @@ TArray<FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystemCompone
 	
 	return Attributes;
 }
-
