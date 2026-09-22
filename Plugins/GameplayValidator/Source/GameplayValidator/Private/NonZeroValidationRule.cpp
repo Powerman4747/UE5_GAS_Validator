@@ -2,6 +2,8 @@
 #include "NonZeroValidationRule.h"
 
 #include "AttributeSet.h"
+#include "GASValidator.h"
+
 
 
 NonZeroValidationRule::NonZeroValidationRule() :

@@ -13,19 +13,20 @@
 #include "Editor.h"
 #include "GASValidationRule.h"
 #include "NonZeroValidationRule.h"
+#include "TagRegistryValidationRule.h"
 
 TArray<TSharedRef<IGASValidationRule>> UGASValidator::Rules;
+
+#ifndef USE_NO_STANDARD_RULES
+GAS_VALIDATION_REGISTER_RULE(NonZeroValidationRule); 
+GAS_VALIDATION_REGISTER_RULE(TagRegistryValidationRule); 
+#endif
 
 void UGASValidator::RunValidator()
 {
 	UE_LOG(LogGASValidator, Log, TEXT("GAS Validator started"));
 
 	UEditorValidatorSubsystem* ValidatorSubsystem = GEditor->GetEditorSubsystem<UEditorValidatorSubsystem>();
-
-	if (Rules.IsEmpty())
-	{
-		Rules.Add(MakeShared<NonZeroValidationRule>());
-	}
 	
 	FValidateAssetsSettings Settings;
 	Settings.bShowIfNoFailures = true;
@@ -40,6 +41,38 @@ void UGASValidator::RunValidator()
 	{
 		UE_LOG(LogGASValidator, Log, TEXT("No assets to validate"));
 	}
+	
+	// NEW: separately handle native classes, which the above will never reach
+	TArray<UClass*> NativeClasses;
+	TArray<GASValidationResult> ValidationResults;
+	GetDerivedClasses(UGameplayAbility::StaticClass(), NativeClasses, true);
+	
+	
+	for (UClass* Class : NativeClasses)
+	{
+		if (Class->ClassGeneratedBy != nullptr) continue; // skip Blueprint-generated
+		GASObjects Objects = UGASValidator::FindGASRelatedFields(Class->GetDefaultObject());
+		
+		for (auto Rule : Rules)
+		{
+			Rule->Validate(Objects, ValidationResults);
+		}
+	}
+	
+	NativeClasses.Empty();
+	GetDerivedClasses(UGameplayAbility::StaticClass(), NativeClasses, true);
+	for (UClass* Class : NativeClasses)
+	{
+		if (Class->ClassGeneratedBy != nullptr) continue; // skip Blueprint-generated
+		GASObjects Objects = UGASValidator::FindGASRelatedFields(Class->GetDefaultObject());
+		
+		for (auto Rule : Rules)
+		{
+			Rule->Validate(Objects, ValidationResults);
+		}
+	}
+	
+	UGASValidator::LogResults(ValidationResults);
 	
 	FValidateAssetsResults Results;
 	ValidatorSubsystem->ValidateAssetsWithSettings(AssetDataList, Settings, Results);
@@ -59,7 +92,10 @@ bool UGASValidator::CanValidateAsset_Implementation(const FAssetData& InAssetDat
 	}
 	auto GASObjects = this->FindGASRelatedFields(InAsset);
 	
-	return !GASObjects.Attributes.IsEmpty();
+	bool bIsAbility = InAsset->IsA(UGameplayAbility::StaticClass());
+	bool bIsEffect = InAsset->IsA(UGameplayEffect::StaticClass());
+	
+	return bIsAbility || bIsEffect || !GASObjects.Attributes.IsEmpty() || !GASObjects.TagContainers.IsEmpty();
 }
 
 EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset,
@@ -80,16 +116,7 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 		Rule->Validate(GASRelatedFields, Results);
 	}
 	
-	bool bHasError = false;
-	for (auto Result : Results)
-	{
-		UE_LOG(LogGASValidator, Log, TEXT("%s"), *Result.Message)
-		
-		if (Result.Severity == EGASValidationSeverity::ERROR)
-		{
-			bHasError = true;
-		}
-	}
+	bool bHasError = UGASValidator::LogResults(Results);
 	
 	if (bHasError)
 	{
@@ -101,17 +128,22 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 	return 	EDataValidationResult::Valid;
 }
 
-GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
+GASObjects UGASValidator::FindGASRelatedFields(UObject* Instance)
 {
 	GASObjects Objects;
 
-	if (!Class)
+	if (!Instance)
 	{
 		return Objects;
 	}
 	
-	AActor* Actor = Cast<AActor>(Class);
+	if (Instance->IsA(UGameplayAbility::StaticClass()) || Instance->IsA(UGameplayEffect::StaticClass()))
+	{
+		Objects.TagContainers.Append(FindTags(Instance->GetClass()));
+		return Objects; 
+	}	
 	
+	AActor* Actor = Cast<AActor>(Instance);	
 	UAbilitySystemComponent* ASC = nullptr;
 	if (Actor)
 	{
@@ -121,8 +153,8 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 			ASC = ASI->GetAbilitySystemComponent();
 		}
 	}
-	
-	for (TFieldIterator<FProperty> PropertyIterator(Class->GetClass()); PropertyIterator; ++PropertyIterator)
+
+	for (TFieldIterator<FProperty> PropertyIterator(Instance->GetClass()); PropertyIterator; ++PropertyIterator)
 	{
 		FProperty* Property = *PropertyIterator;
 		
@@ -130,7 +162,7 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 		{
 			if (ClassProperty->MetaClass->IsChildOf(UAttributeSet::StaticClass()))
 			{
-				UObject* ClassValue = ClassProperty->GetObjectPropertyValue_InContainer(Class);
+				UObject* ClassValue = ClassProperty->GetObjectPropertyValue_InContainer(Instance);
 				if (UClass* Class = Cast<UClass>(ClassValue))
 				{
 					/*if (UAttributeSet* CDO = Cast<UAttributeSet>(Class->GetDefaultObject()))
@@ -139,8 +171,17 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 					}*/
 					if (ASC)
 					{
-						Objects.Attributes.Append(this->FindAttributes(ASC, Class));
+						Objects.Attributes.Append(UGASValidator::FindAttributes(ASC, Class));
 					}
+				}
+			}
+			else if (ClassProperty->MetaClass->IsChildOf(UGameplayAbility::StaticClass()) 
+						|| ClassProperty->MetaClass->IsChildOf(UGameplayEffect::StaticClass()))
+			{
+				UObject* ClassValue = ClassProperty->GetObjectPropertyValue_InContainer(Instance);
+				if (UClass* Class = Cast<UClass>(ClassValue))
+				{
+					Objects.TagContainers.Append(UGASValidator::FindTags(Class));
 				}
 			}
 		}
@@ -148,7 +189,8 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 		{
 			if (ObjectProperty->PropertyClass->IsChildOf(UAttributeSet::StaticClass()))
 			{
-				UObject* Value = ObjectProperty->GetObjectPropertyValue_InContainer(Class);
+				UObject* Value = ObjectProperty->GetObjectPropertyValue_InContainer(Instance);
+				
 				/*if (UAttributeSet* AttributeSet = Cast<UAttributeSet>(Value))
 				{
 					Objects.AttributeSets.Add(AttributeSet);
@@ -156,8 +198,15 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 				
 				if (ASC)
 				{
-					Objects.Attributes.Append(this->FindAttributes(ASC, Value->GetClass()));
+					Objects.Attributes.Append(UGASValidator::FindAttributes(ASC, Value->GetClass()));
 				}
+			}
+			else if (ObjectProperty->PropertyClass->IsChildOf(UGameplayAbility::StaticClass()) 
+						|| ObjectProperty->PropertyClass->IsChildOf(UGameplayEffect::StaticClass()))
+			{
+				UObject* Value = ObjectProperty->GetObjectPropertyValue_InContainer(Instance);
+
+				Objects.TagContainers.Append(UGASValidator::FindTags(Value->GetClass()));
 			}
 		}
 	}
@@ -165,9 +214,14 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Class) const
 	return Objects;
 }
 
-TArray<FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystemComponent* ASC, UClass* Class) const
+TArray<FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystemComponent* ASC, UClass* Class)
 {
 	TArray<FDiscoveredAttribute> Attributes;
+	
+	if (!Class)
+	{
+		return Attributes;
+	}
 	
 	UDataTable* MetaTable = nullptr;
 	if (!ASC->DefaultStartingData.IsEmpty())
@@ -221,4 +275,48 @@ TArray<FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystemCompone
 	}
 	
 	return Attributes;
+}
+
+TArray<FDiscoveredTagContainer> UGASValidator::FindTags(UClass* Class)
+{
+	TArray<FDiscoveredTagContainer> Tags;
+	if (!Class)
+	{
+		return Tags;
+	}
+	
+	for (TFieldIterator<FStructProperty> PropIt(Class); PropIt; ++PropIt)
+	{
+		FStructProperty* StructProp = *PropIt;
+		if (StructProp->Struct != FGameplayTagContainer::StaticStruct())
+		{
+			continue;
+		}
+		
+		FDiscoveredTagContainer TagContainer;
+		
+		auto* Value = Class->GetDefaultObject();
+		TagContainer.Container = *StructProp->ContainerPtrToValuePtr<FGameplayTagContainer>(Value);
+		TagContainer.PropertyName = StructProp->GetFName();
+		TagContainer.Class = Class->GetFName();
+		
+		Tags.Add(TagContainer);
+	}
+	return Tags;
+}
+
+bool UGASValidator::LogResults(TArray<GASValidationResult>& Results)
+{
+	bool bHasError = false;
+	for (auto Result : Results)
+	{
+		UE_LOG(LogGASValidator, Log, TEXT("%s"), *Result.Message)
+		
+		if (Result.Severity == EGASValidationSeverity::ERROR)
+		{
+			bHasError = true;
+		}
+	}
+	
+	return bHasError;
 }

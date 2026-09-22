@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GASValidationRule.h"
-#include "GASValidator.h"
 
 struct FAttributeDefaults;
 class UAttributeSet;

@@ -41,6 +41,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon")
 	TObjectPtr<USceneComponent> WeaponRoot;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+    TSubclassOf<UGameplayAbility> FireAbility;
+                                           	
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TSubclassOf<UGameplayAbility> ReloadAbility;
 
 private:
 	
@@ -49,6 +55,8 @@ private:
 
 	FGameplayAbilitySpecHandle FireAbilityHandle;
 	FGameplayAbilitySpecHandle ReloadAbilityHandle;
+	
+	
 
 	void InitializeFromDataTable();
 	void GrantAbilities();

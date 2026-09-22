@@ -48,19 +48,19 @@ void AWeaponBase::GrantAbilities()
 {
     if (!AbilitySystemComponent) return;
 
-    TSubclassOf<UGA_FireWeapon> FireClass = WeaponConfig.FireAbilityClass
+    FireAbility = WeaponConfig.FireAbilityClass
         ? TSubclassOf<UGA_FireWeapon>(WeaponConfig.FireAbilityClass)
         : TSubclassOf<UGA_FireWeapon>(UGA_FireWeapon::StaticClass());
 
-    TSubclassOf<UGA_ReloadWeapon> ReloadClass = WeaponConfig.ReloadAbilityClass
+    ReloadAbility = WeaponConfig.ReloadAbilityClass
         ? TSubclassOf<UGA_ReloadWeapon>(WeaponConfig.ReloadAbilityClass)
         : TSubclassOf<UGA_ReloadWeapon>(UGA_ReloadWeapon::StaticClass());
 
     FireAbilityHandle = AbilitySystemComponent->GiveAbility(
-        FGameplayAbilitySpec(FireClass, 1, INDEX_NONE, this));
+        FGameplayAbilitySpec(FireAbility, 1, INDEX_NONE, this));
 
     ReloadAbilityHandle = AbilitySystemComponent->GiveAbility(
-        FGameplayAbilitySpec(ReloadClass, 1, INDEX_NONE, this));
+        FGameplayAbilitySpec(ReloadAbility, 1, INDEX_NONE, this));
 }
 
 FTransform AWeaponBase::GetMuzzleTransform() const
