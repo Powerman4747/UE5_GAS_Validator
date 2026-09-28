@@ -60,7 +60,7 @@ void UGASValidator::RunValidator()
 	}
 	
 	NativeClasses.Empty();
-	GetDerivedClasses(UGameplayAbility::StaticClass(), NativeClasses, true);
+	GetDerivedClasses(UGameplayEffect::StaticClass(), NativeClasses, true);
 	for (UClass* Class : NativeClasses)
 	{
 		if (Class->ClassGeneratedBy != nullptr) continue; // skip Blueprint-generated
@@ -196,7 +196,7 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Instance)
 					Objects.AttributeSets.Add(AttributeSet);
 				}*/
 				
-				if (ASC)
+				if (ASC && Value)
 				{
 					Objects.Attributes.Append(UGASValidator::FindAttributes(ASC, Value->GetClass()));
 				}
@@ -206,7 +206,10 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Instance)
 			{
 				UObject* Value = ObjectProperty->GetObjectPropertyValue_InContainer(Instance);
 
-				Objects.TagContainers.Append(UGASValidator::FindTags(Value->GetClass()));
+				if (Value)
+				{
+					Objects.TagContainers.Append(UGASValidator::FindTags(Value->GetClass()));
+				}
 			}
 		}
 	}

@@ -48,11 +48,11 @@ void AWeaponBase::GrantAbilities()
 {
     if (!AbilitySystemComponent) return;
 
-    FireAbility = WeaponConfig.FireAbilityClass
+    auto FireAbility = WeaponConfig.FireAbilityClass
         ? TSubclassOf<UGA_FireWeapon>(WeaponConfig.FireAbilityClass)
         : TSubclassOf<UGA_FireWeapon>(UGA_FireWeapon::StaticClass());
 
-    ReloadAbility = WeaponConfig.ReloadAbilityClass
+    auto ReloadAbility = WeaponConfig.ReloadAbilityClass
         ? TSubclassOf<UGA_ReloadWeapon>(WeaponConfig.ReloadAbilityClass)
         : TSubclassOf<UGA_ReloadWeapon>(UGA_ReloadWeapon::StaticClass());
 

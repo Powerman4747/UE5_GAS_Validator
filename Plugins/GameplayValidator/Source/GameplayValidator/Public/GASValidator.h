@@ -19,6 +19,7 @@ class UAbilitySystemComponent;
 
 struct FDiscoveredAttribute
 {
+	
 	FGameplayAttribute Attribute; 
 	TOptional<FName> SourceOfValue;
 	TOptional<float> Value;
