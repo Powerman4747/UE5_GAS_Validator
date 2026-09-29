@@ -136,19 +136,17 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Instance)
 	{
 		return Objects;
 	}
-	
+
 	if (Instance->IsA(UGameplayAbility::StaticClass()) || Instance->IsA(UGameplayEffect::StaticClass()))
 	{
 		Objects.TagContainers.Append(FindTags(Instance->GetClass()));
-		return Objects; 
-	}	
-	
-	AActor* Actor = Cast<AActor>(Instance);	
+		return Objects;
+	}
+
 	UAbilitySystemComponent* ASC = nullptr;
-	if (Actor)
+	if (AActor* Actor = Cast<AActor>(Instance))
 	{
-		IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Actor);
-		if (ASI)
+		if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Actor))
 		{
 			ASC = ASI->GetAbilitySystemComponent();
 		}
@@ -156,65 +154,51 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Instance)
 
 	for (TFieldIterator<FProperty> PropertyIterator(Instance->GetClass()); PropertyIterator; ++PropertyIterator)
 	{
-		FProperty* Property = *PropertyIterator;
-		
-		if(FClassProperty* ClassProperty = CastField<FClassProperty>(Property))
+		UClass* ReferencedClass = UGASValidator::ResolveClass(*PropertyIterator, Instance);
+		if (!ReferencedClass)
 		{
-			if (ClassProperty->MetaClass->IsChildOf(UAttributeSet::StaticClass()))
-			{
-				UObject* ClassValue = ClassProperty->GetObjectPropertyValue_InContainer(Instance);
-				if (UClass* Class = Cast<UClass>(ClassValue))
-				{
-					/*if (UAttributeSet* CDO = Cast<UAttributeSet>(Class->GetDefaultObject()))
-					{
-						Objects.AttributeSets.Add(CDO);
-					}*/
-					if (ASC)
-					{
-						Objects.Attributes.Append(UGASValidator::FindAttributes(ASC, Class));
-					}
-				}
-			}
-			else if (ClassProperty->MetaClass->IsChildOf(UGameplayAbility::StaticClass()) 
-						|| ClassProperty->MetaClass->IsChildOf(UGameplayEffect::StaticClass()))
-			{
-				UObject* ClassValue = ClassProperty->GetObjectPropertyValue_InContainer(Instance);
-				if (UClass* Class = Cast<UClass>(ClassValue))
-				{
-					Objects.TagContainers.Append(UGASValidator::FindTags(Class));
-				}
-			}
+			continue;
 		}
-		else if (FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property))
-		{
-			if (ObjectProperty->PropertyClass->IsChildOf(UAttributeSet::StaticClass()))
-			{
-				UObject* Value = ObjectProperty->GetObjectPropertyValue_InContainer(Instance);
-				
-				/*if (UAttributeSet* AttributeSet = Cast<UAttributeSet>(Value))
-				{
-					Objects.AttributeSets.Add(AttributeSet);
-				}*/
-				
-				if (ASC && Value)
-				{
-					Objects.Attributes.Append(UGASValidator::FindAttributes(ASC, Value->GetClass()));
-				}
-			}
-			else if (ObjectProperty->PropertyClass->IsChildOf(UGameplayAbility::StaticClass()) 
-						|| ObjectProperty->PropertyClass->IsChildOf(UGameplayEffect::StaticClass()))
-			{
-				UObject* Value = ObjectProperty->GetObjectPropertyValue_InContainer(Instance);
 
-				if (Value)
-				{
-					Objects.TagContainers.Append(UGASValidator::FindTags(Value->GetClass()));
-				}
-			}
+		if (ReferencedClass->IsChildOf(UAttributeSet::StaticClass()) && ASC)
+		{
+			Objects.Attributes.Append(FindAttributes(ASC, ReferencedClass));
 		}
+		else if (ReferencedClass->IsChildOf(UGameplayAbility::StaticClass()) 
+			   || ReferencedClass->IsChildOf(UGameplayEffect::StaticClass()))
+		{
+			if (ReferencedClass->IsChildOf(UGameplayAbility::StaticClass()))
+			{
+				Objects.Abilities.Add(ReferencedClass, FindAbilities(ReferencedClass));
+			}
+			else
+			{
+				Objects.Effects.Add(ReferencedClass, FindEffects(ReferencedClass));
+			}
+			
+			Objects.TagContainers.Append(FindTags(ReferencedClass));
+		}
+		// Future GameplayCueNotify_Actor & _Static
+	}
+
+	return Objects;
+}
+
+UClass* UGASValidator::ResolveClass(FProperty* Property, UObject* Instance)
+{
+	if (FClassProperty* ClassProperty = CastField<FClassProperty>(Property))
+	{
+		return Cast<UClass>(ClassProperty->GetObjectPropertyValue_InContainer(Instance));
+	}
+	if (FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property))
+	{
+		UObject* Value = ObjectProperty->GetObjectPropertyValue_InContainer(Instance);
+		return Value ? Value->GetClass() : nullptr;
 	}
 	
-	return Objects;
+	// TODO: SoftClass
+	
+	return nullptr;
 }
 
 TMap<UClass*, FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystemComponent* ASC, UClass* Class)
@@ -229,7 +213,6 @@ TMap<UClass*, FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystem
 	UDataTable* MetaTable = nullptr;
 	if (!ASC->DefaultStartingData.IsEmpty())
 	{
-		
 		for (auto Defaults : ASC->DefaultStartingData)
 		{
 			if (Defaults.Attributes.Get() == Class)
@@ -282,12 +265,13 @@ TMap<UClass*, FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystem
 
 TMap<UClass*,FDiscoveredTagContainer> UGASValidator::FindTags(UClass* Class)
 {
-	TMap<UClass*,FDiscoveredTagContainer> Tags;
+	TMap<UClass*, FDiscoveredTagContainer> Tags;
 	if (!Class)
 	{
 		return Tags;
 	}
 	
+	auto* Value = Class->GetDefaultObject();
 	for (TFieldIterator<FStructProperty> PropIt(Class); PropIt; ++PropIt)
 	{
 		FStructProperty* StructProp = *PropIt;
@@ -297,23 +281,103 @@ TMap<UClass*,FDiscoveredTagContainer> UGASValidator::FindTags(UClass* Class)
 		}
 		
 		FDiscoveredTagContainer TagContainer;
-		
-		auto* Value = Class->GetDefaultObject();
 		TagContainer.Container = *StructProp->ContainerPtrToValuePtr<FGameplayTagContainer>(Value);
 		TagContainer.PropertyName = StructProp->GetFName();		
 		Tags.Add(Class, TagContainer);
 	}
+	
+	for (TFieldIterator<FArrayProperty> PropIt(Class); PropIt; ++PropIt)
+	{
+		FArrayProperty* ArrayProp = *PropIt;
+		FStructProperty* InnerStruct = CastField<FStructProperty>(ArrayProp->Inner);
+        if (!InnerStruct || InnerStruct->Struct != FGameplayEffectCue::StaticStruct())
+        {
+        	continue;
+        }
+
+        FScriptArrayHelper Helper(ArrayProp, ArrayProp->ContainerPtrToValuePtr<void>(Value));
+        for (int32 i = 0; i < Helper.Num(); ++i)
+        {
+        	const FGameplayEffectCue* Cue = reinterpret_cast<const FGameplayEffectCue*>(Helper.GetRawPtr(i));
+        
+        	FDiscoveredTagContainer TagContainer;
+        	TagContainer.Container = Cue->GameplayCueTags;
+        	TagContainer.PropertyName = ArrayProp->GetFName();		
+        	Tags.Add(Class, TagContainer);
+        }
+	}
 	return Tags;
 }
 
-TMap<UClass*, FDiscoveredAbility> UGASValidator::FindAbilities(UClass* CDO)
+FDiscoveredAbility UGASValidator::FindAbilities(UClass* Class)
 {
-	return TMap<UClass*, FDiscoveredAbility>();
+	FDiscoveredAbility Ability;
+	
+	if (!Class)
+	{
+		return Ability;
+	}
+	
+	auto* CDO = Class->GetDefaultObject();
+	for (TFieldIterator<FProperty> PropIt(Class); PropIt; ++PropIt)
+	{
+		FProperty* Property = *PropIt;
+		auto* ReferencedClass = UGASValidator::ResolveClass(Property, CDO);
+		if (ReferencedClass)
+		{
+			continue;
+		}
+		
+		if (ReferencedClass->IsChildOf(UGameplayEffect::StaticClass()))
+		{
+			FDiscoveredEffectReference EffectReference;
+			EffectReference.PropertyName = Property->GetFName();
+			EffectReference.EffectClass = ReferencedClass;
+			
+			Ability.Effects.Add(EffectReference);
+		}
+		
+		// TODO: GEComponents
+	}
+	return Ability;
 }
 
-TMap<UClass*, FDiscoveredEffect> UGASValidator::FindEffects(UClass* CDO)
+FDiscoveredEffect UGASValidator::FindEffects(UClass* Class)
 {
-	return TMap<UClass*, FDiscoveredEffect>();
+	FDiscoveredEffect Effect;
+	
+	if (!Class)
+	{
+		return Effect;
+	}
+	
+	auto* CDO = Class->GetDefaultObject();
+
+	for (TFieldIterator<FProperty> PropIt(Class); PropIt; ++PropIt)
+	{
+		/*FProperty* Property = *PropIt;
+		FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Property);
+		if (!ArrayProperty)
+		{
+			continue;
+		}
+		
+		FStructProperty* InnerStruct = CastField<FStructProperty>(ArrayProperty->Inner);
+		if (!InnerStruct || InnerStruct->Struct != FGameplayEffectCue::StaticStruct())
+		{
+			continue;
+		}
+
+		FScriptArrayHelper Helper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(CDO));
+		for (int32 i = 0; i < Helper.Num(); ++i)
+		{
+			const FGameplayEffectCue* Cue = reinterpret_cast<const FGameplayEffectCue*>(Helper.GetRawPtr(i));
+		
+			// currently not needed
+		}*/
+	}
+	
+	return Effect;
 }
 
 TMap<UClass*, FDiscoveredCue> UGASValidator::FindCues(UClass* CDO)

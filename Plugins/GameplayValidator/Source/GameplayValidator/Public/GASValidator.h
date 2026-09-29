@@ -12,14 +12,15 @@
  * 
  */
 
+
 struct GASValidationResult;
 class UAttributeSet;
+class UGameplayEffect;
 class IGASValidationRule;
 class UAbilitySystemComponent;
 
 struct FDiscoveredAttribute
 {
-	
 	FGameplayAttribute Attribute; 
 	TOptional<FName> SourceOfValue;
 	TOptional<float> Value;
@@ -32,22 +33,25 @@ struct FDiscoveredTagContainer
 	FGameplayTagContainer Container;
 };
 
-struct FDiscoveredAbility
+struct FDiscoveredCue
 {
-	UClass* Effect;
-	TArray<UClass*> TagContainers;
+	FGameplayTag Tag;
+};
+
+struct FDiscoveredEffectReference
+{
+	FName PropertyName; // could be Cost or Cooldown
+	TSubclassOf<UGameplayEffect> EffectClass;
 };
 
 struct FDiscoveredEffect
 {
-	FName PropertyName; // could be Cost or Cooldown
-	TArray<UClass*> Effects;
-	TArray<UClass*> TagContainers;
+	TArray<FDiscoveredCue> Cues;
 };
 
-struct FDiscoveredCue
+struct FDiscoveredAbility
 {
-	TArray<UClass*> TagContainers;
+	TArray<FDiscoveredEffectReference> Effects;
 };
 
 
@@ -73,10 +77,11 @@ public:
 	
 private:
 	static GASObjects FindGASRelatedFields(UObject* Class);
+	static UClass* ResolveClass(FProperty* Property, UObject* Instance);
 	static TMap<UClass*, FDiscoveredAttribute> FindAttributes(UAbilitySystemComponent* ASC, UClass* Class);
 	static TMap<UClass*, FDiscoveredTagContainer> FindTags(UClass* CDO);
-	static TMap<UClass*, FDiscoveredAbility> FindAbilities(UClass* CDO);
-	static TMap<UClass*, FDiscoveredEffect> FindEffects(UClass* CDO);
+	static FDiscoveredAbility FindAbilities(UClass* CDO);
+	static FDiscoveredEffect FindEffects(UClass* CDO);
 	static TMap<UClass*, FDiscoveredCue> FindCues(UClass* CDO);
 	static bool LogResults(TArray<GASValidationResult>& Results);
 	static TArray<TSharedRef<IGASValidationRule>> Rules;
@@ -91,7 +96,7 @@ void UGASValidator::AddRule(TArgs&&... Args)
 #define GAS_VALIDATION_REGISTER_RULE(RuleClass, ...)									\
 namespace																				\
 {																						\
-	inline const auto CONCAT(GAS_VALIDATION_RULE_, __COUNTER__) = []()                             \
+	inline const auto CONCAT(GAS_VALIDATION_RULE_, __COUNTER__) = []()                  \
 	{                                                                                   \
 		UGASValidator::AddRule<RuleClass>(__VA_ARGS__);									\
 		return true;																	\
