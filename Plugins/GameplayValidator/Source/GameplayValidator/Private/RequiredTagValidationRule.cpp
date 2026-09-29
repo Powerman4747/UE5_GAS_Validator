@@ -15,9 +15,11 @@ RequiredTagValidationRule::RequiredTagValidationRule(FName InClassName, FName In
 
 void RequiredTagValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
 {
-	for ( const auto& TagContainer : Objects.TagContainers)
+	for ( const auto& Pair : Objects.TagContainers)
 	{
-		if(TagContainer.Class != ClassName || TagContainer.PropertyName != TagContainerName)
+		const auto& TagContainer = Pair.Value;
+
+		if(Pair.Key->GetName() != ClassName || TagContainer.PropertyName != TagContainerName)
 		{
 			continue;
 		}

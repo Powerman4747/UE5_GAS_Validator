@@ -13,8 +13,9 @@ NonZeroValidationRule::NonZeroValidationRule() :
 
 void NonZeroValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
 {
-	for (auto Attribute : Objects.Attributes)
+	for (const auto& Pair : Objects.Attributes)
 	{
+		const auto& Attribute = Pair.Value;
 		// if this attribute will not have a DataTable then the others of this Attribute set also will not 
 		if (!Attribute.SourceOfValue.IsSet())
 		{

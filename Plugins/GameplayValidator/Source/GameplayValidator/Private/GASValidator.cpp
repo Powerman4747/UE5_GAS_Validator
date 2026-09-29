@@ -217,9 +217,9 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Instance)
 	return Objects;
 }
 
-TArray<FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystemComponent* ASC, UClass* Class)
+TMap<UClass*, FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystemComponent* ASC, UClass* Class)
 {
-	TArray<FDiscoveredAttribute> Attributes;
+	TMap<UClass*, FDiscoveredAttribute> Attributes;
 	
 	if (!Class)
 	{
@@ -257,7 +257,7 @@ TArray<FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystemCompone
 		
 		if (!MetaTable)
 		{
-			Attributes.Add(DiscoveredAttribute);
+			Attributes.Add(Class, DiscoveredAttribute);
 			continue;
 		}
 		DiscoveredAttribute.SourceOfValue = MetaTable->GetFName();
@@ -274,15 +274,15 @@ TArray<FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystemCompone
 			DiscoveredAttribute.Value = BaseValue;
 		}
 		
-		Attributes.Add(DiscoveredAttribute);
+		Attributes.Add(Class, DiscoveredAttribute);
 	}
 	
 	return Attributes;
 }
 
-TArray<FDiscoveredTagContainer> UGASValidator::FindTags(UClass* Class)
+TMap<UClass*,FDiscoveredTagContainer> UGASValidator::FindTags(UClass* Class)
 {
-	TArray<FDiscoveredTagContainer> Tags;
+	TMap<UClass*,FDiscoveredTagContainer> Tags;
 	if (!Class)
 	{
 		return Tags;
@@ -300,12 +300,25 @@ TArray<FDiscoveredTagContainer> UGASValidator::FindTags(UClass* Class)
 		
 		auto* Value = Class->GetDefaultObject();
 		TagContainer.Container = *StructProp->ContainerPtrToValuePtr<FGameplayTagContainer>(Value);
-		TagContainer.PropertyName = StructProp->GetFName();
-		TagContainer.Class = Class->GetFName();
-		
-		Tags.Add(TagContainer);
+		TagContainer.PropertyName = StructProp->GetFName();		
+		Tags.Add(Class, TagContainer);
 	}
 	return Tags;
+}
+
+TMap<UClass*, FDiscoveredAbility> UGASValidator::FindAbilities(UClass* CDO)
+{
+	return TMap<UClass*, FDiscoveredAbility>();
+}
+
+TMap<UClass*, FDiscoveredEffect> UGASValidator::FindEffects(UClass* CDO)
+{
+	return TMap<UClass*, FDiscoveredEffect>();
+}
+
+TMap<UClass*, FDiscoveredCue> UGASValidator::FindCues(UClass* CDO)
+{
+	return TMap<UClass*, FDiscoveredCue>();
 }
 
 bool UGASValidator::LogResults(TArray<GASValidationResult>& Results)

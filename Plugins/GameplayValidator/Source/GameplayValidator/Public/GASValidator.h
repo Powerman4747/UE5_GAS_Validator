@@ -30,13 +30,34 @@ struct FDiscoveredTagContainer
 {
 	FName PropertyName;
 	FGameplayTagContainer Container;
-	FName Class;
 };
+
+struct FDiscoveredAbility
+{
+	UClass* Effect;
+	TArray<UClass*> TagContainers;
+};
+
+struct FDiscoveredEffect
+{
+	FName PropertyName; // could be Cost or Cooldown
+	TArray<UClass*> Effects;
+	TArray<UClass*> TagContainers;
+};
+
+struct FDiscoveredCue
+{
+	TArray<UClass*> TagContainers;
+};
+
 
 struct GASObjects
 {
-	TArray<FDiscoveredAttribute> Attributes;
-	TArray<FDiscoveredTagContainer> TagContainers;
+	TMap<UClass*, FDiscoveredAttribute> Attributes;
+	TMap<UClass*, FDiscoveredTagContainer> TagContainers;
+	TMap<UClass*, FDiscoveredAbility> Abilities;
+	TMap<UClass*, FDiscoveredEffect> Effects;
+	TMap<UClass*, FDiscoveredEffect> Cues;
 };
 
 UCLASS()
@@ -52,8 +73,11 @@ public:
 	
 private:
 	static GASObjects FindGASRelatedFields(UObject* Class);
-	static TArray<FDiscoveredAttribute> FindAttributes(UAbilitySystemComponent* ASC, UClass* Class);
-	static TArray<FDiscoveredTagContainer> FindTags(UClass* CDO);
+	static TMap<UClass*, FDiscoveredAttribute> FindAttributes(UAbilitySystemComponent* ASC, UClass* Class);
+	static TMap<UClass*, FDiscoveredTagContainer> FindTags(UClass* CDO);
+	static TMap<UClass*, FDiscoveredAbility> FindAbilities(UClass* CDO);
+	static TMap<UClass*, FDiscoveredEffect> FindEffects(UClass* CDO);
+	static TMap<UClass*, FDiscoveredCue> FindCues(UClass* CDO);
 	static bool LogResults(TArray<GASValidationResult>& Results);
 	static TArray<TSharedRef<IGASValidationRule>> Rules;
 };
