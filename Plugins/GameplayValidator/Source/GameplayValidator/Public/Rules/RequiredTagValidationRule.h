@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "GASValidationRule.h"
+#include "Rules/GASValidationRule.h"
 
 /**
  * 

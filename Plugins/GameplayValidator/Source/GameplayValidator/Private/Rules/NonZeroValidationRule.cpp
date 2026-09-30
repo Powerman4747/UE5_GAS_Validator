@@ -1,10 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
-#include "NonZeroValidationRule.h"
-
+#include "Rules/NonZeroValidationRule.h"
 #include "AttributeSet.h"
 #include "GASValidator.h"
-
-
 
 NonZeroValidationRule::NonZeroValidationRule() :
 	IGASValidationRule("AttributeNonZero")

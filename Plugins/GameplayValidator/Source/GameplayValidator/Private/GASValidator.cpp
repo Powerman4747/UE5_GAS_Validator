@@ -11,9 +11,9 @@
 
 #include "Engine/Blueprint.h"
 #include "Editor.h"
-#include "GASValidationRule.h"
-#include "NonZeroValidationRule.h"
-#include "TagRegistryValidationRule.h"
+#include "Rules/GASValidationRule.h"
+#include "Rules/NonZeroValidationRule.h"
+#include "Rules/TagRegistryValidationRule.h"
 
 TArray<TSharedRef<IGASValidationRule>> UGASValidator::Rules;
 
@@ -348,6 +348,7 @@ FDiscoveredEffect UGASValidator::FindEffects(UClass* Class)
 	
 	if (!Class)
 	{
+		UE_LOG(LogGASValidator, Verbose, TEXT("FindEffects called with invalid class"));
 		return Effect;
 	}
 	

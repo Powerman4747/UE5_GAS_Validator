@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GASValidationRule.h"
+#include "Rules/GASValidationRule.h"
 
 /**
  * 

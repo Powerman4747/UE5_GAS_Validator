@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GASValidationRule.h"
+#include "Rules/GASValidationRule.h"
 
 
 IGASValidationRule::IGASValidationRule(FString Name)

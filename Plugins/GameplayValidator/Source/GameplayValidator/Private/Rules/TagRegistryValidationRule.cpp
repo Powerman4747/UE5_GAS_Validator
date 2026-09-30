@@ -1,5 +1,5 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
-#include "../Public/TagRegistryValidationRule.h"
+#include "Rules/TagRegistryValidationRule.h"
 #include "GASValidator.h"
 #include "GameplayTagsManager.h"
 
