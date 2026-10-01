@@ -108,12 +108,14 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 			InAsset = Blueprint->GeneratedClass->GetDefaultObject();
 		}
 	}
-	auto GASRelatedFields = FindGASRelatedFields(InAsset);
+	GASObjects Objects;
+	TSet<UClass*> VisitedSet;
+	auto GASRelatedFields = FindGASRelatedFields(InAsset); // Replace
 	
 	TArray<GASValidationResult> Results;
 	for (auto Rule : Rules)
 	{
-		Rule->Validate(GASRelatedFields, Results);
+		Rule->Validate(Objects, Results);
 	}
 	
 	bool bHasError = UGASValidator::LogResults(Results);
@@ -140,6 +142,14 @@ GASObjects UGASValidator::FindGASRelatedFields(UObject* Instance)
 	if (Instance->IsA(UGameplayAbility::StaticClass()) || Instance->IsA(UGameplayEffect::StaticClass()))
 	{
 		Objects.TagContainers.Append(FindTags(Instance->GetClass()));
+		if (Instance->IsA(UGameplayAbility::StaticClass()))
+		{
+			Objects.Abilities.Add(Instance->GetClass(), FindAbilities(Instance->GetClass()));
+		}
+		else
+		{
+			Objects.Effects.Add(Instance->GetClass(), FindEffects(Instance->GetClass()));
+		}
 		return Objects;
 	}
 
@@ -263,9 +273,10 @@ TMap<UClass*, FDiscoveredAttribute> UGASValidator::FindAttributes(UAbilitySystem
 	return Attributes;
 }
 
-TMap<UClass*,FDiscoveredTagContainer> UGASValidator::FindTags(UClass* Class)
+TMap<UClass*, TArray<FDiscoveredTagContainer>> UGASValidator::FindTags(UClass* Class)
 {
-	TMap<UClass*, FDiscoveredTagContainer> Tags;
+	TMap<UClass*, TArray<FDiscoveredTagContainer>> Tags;
+	TArray<FDiscoveredTagContainer> TagContainers;
 	if (!Class)
 	{
 		return Tags;
@@ -283,7 +294,7 @@ TMap<UClass*,FDiscoveredTagContainer> UGASValidator::FindTags(UClass* Class)
 		FDiscoveredTagContainer TagContainer;
 		TagContainer.Container = *StructProp->ContainerPtrToValuePtr<FGameplayTagContainer>(Value);
 		TagContainer.PropertyName = StructProp->GetFName();		
-		Tags.Add(Class, TagContainer);
+		TagContainers.Add(TagContainer);
 	}
 	
 	for (TFieldIterator<FArrayProperty> PropIt(Class); PropIt; ++PropIt)
@@ -303,9 +314,15 @@ TMap<UClass*,FDiscoveredTagContainer> UGASValidator::FindTags(UClass* Class)
         	FDiscoveredTagContainer TagContainer;
         	TagContainer.Container = Cue->GameplayCueTags;
         	TagContainer.PropertyName = ArrayProp->GetFName();		
-        	Tags.Add(Class, TagContainer);
+        	TagContainers.Add(TagContainer);
         }
 	}
+	
+	if (!TagContainers.IsEmpty())
+	{
+		Tags.Add(Class, TagContainers);
+	}
+	
 	return Tags;
 }
 
@@ -323,7 +340,7 @@ FDiscoveredAbility UGASValidator::FindAbilities(UClass* Class)
 	{
 		FProperty* Property = *PropIt;
 		auto* ReferencedClass = UGASValidator::ResolveClass(Property, CDO);
-		if (ReferencedClass)
+		if (!ReferencedClass)
 		{
 			continue;
 		}

@@ -58,7 +58,7 @@ struct FDiscoveredAbility
 struct GASObjects
 {
 	TMap<UClass*, FDiscoveredAttribute> Attributes;
-	TMap<UClass*, FDiscoveredTagContainer> TagContainers;
+	TMap<UClass*, TArray<FDiscoveredTagContainer>> TagContainers;
 	TMap<UClass*, FDiscoveredAbility> Abilities;
 	TMap<UClass*, FDiscoveredEffect> Effects;
 	TMap<UClass*, FDiscoveredEffect> Cues;
@@ -79,7 +79,7 @@ private:
 	static GASObjects FindGASRelatedFields(UObject* Class);
 	static UClass* ResolveClass(FProperty* Property, UObject* Instance);
 	static TMap<UClass*, FDiscoveredAttribute> FindAttributes(UAbilitySystemComponent* ASC, UClass* Class);
-	static TMap<UClass*, FDiscoveredTagContainer> FindTags(UClass* CDO);
+	static TMap<UClass*, TArray<FDiscoveredTagContainer>> FindTags(UClass* CDO);
 	static FDiscoveredAbility FindAbilities(UClass* CDO);
 	static FDiscoveredEffect FindEffects(UClass* CDO);
 	static TMap<UClass*, FDiscoveredCue> FindCues(UClass* CDO);

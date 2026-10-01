@@ -17,24 +17,27 @@ void RequiredTagValidationRule::Validate(const GASObjects& Objects, TArray<GASVa
 {
 	for ( const auto& Pair : Objects.TagContainers)
 	{
-		const auto& TagContainer = Pair.Value;
-
-		if(Pair.Key->GetName() != ClassName || TagContainer.PropertyName != TagContainerName)
+		const auto& TagContainers = Pair.Value;
+		
+		for ( const auto& TagContainer : TagContainers)
 		{
-			continue;
-		}
-
-		for (const auto& Tag : Tags)
-		{
-			if (!TagContainer.Container.HasTag(FGameplayTag(Tag)))
+			if(Pair.Key->GetName() != ClassName || TagContainer.PropertyName != TagContainerName)
 			{
-				GASValidationResult Result;
-				Result.RuleName = GetRuleName();
-				Result.Severity = EGASValidationSeverity::ERROR;
-				Result.Message = FString::Printf(
-					TEXT("Required tag '%s' does not exist in the required tag container '%s'"), *Tag.ToString(), *TagContainerName.ToString());
-				Results.Add(Result);
+				continue;
 			}
-		}		
+
+			for (const auto& Tag : Tags)
+			{
+				if (!TagContainer.Container.HasTag(FGameplayTag(Tag)))
+				{
+					GASValidationResult Result;
+					Result.RuleName = GetRuleName();
+					Result.Severity = EGASValidationSeverity::ERROR;
+					Result.Message = FString::Printf(
+						TEXT("Required tag '%s' does not exist in the required tag container '%s'"), *Tag.ToString(), *TagContainerName.ToString());
+					Results.Add(Result);
+				}
+			}
+		}
 	}
 }
