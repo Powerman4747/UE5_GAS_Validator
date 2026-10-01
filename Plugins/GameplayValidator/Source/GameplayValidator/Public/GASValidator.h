@@ -57,7 +57,7 @@ struct FDiscoveredAbility
 
 struct GASObjects
 {
-	TMap<UClass*, FDiscoveredAttribute> Attributes;
+	TMap<UClass*, TArray<FDiscoveredAttribute>> Attributes;
 	TMap<UClass*, TArray<FDiscoveredTagContainer>> TagContainers;
 	TMap<UClass*, FDiscoveredAbility> Abilities;
 	TMap<UClass*, FDiscoveredEffect> Effects;
@@ -76,13 +76,29 @@ public:
 	EDataValidationResult ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset, FDataValidationContext& Context) override;
 	
 private:
-	static GASObjects FindGASRelatedFields(UObject* Class);
-	static UClass* ResolveClass(FProperty* Property, UObject* Instance);
-	static TMap<UClass*, FDiscoveredAttribute> FindAttributes(UAbilitySystemComponent* ASC, UClass* Class);
+	// discover GAS Objects
+	static FDiscoveredAbility& DiscoverAbility(UClass* Class, GASObjects& GASObjects);
+	static FDiscoveredEffect& DiscoverEffect(UClass* Class, GASObjects& GASObjects);
+	static TArray<FDiscoveredAttribute>& DiscoverAttributes(UClass* Class, GASObjects& GASObjects);
+	static TArray<FDiscoveredTagContainer>& DiscoverTags(UClass* Class, const void* Instance, GASObjects& GASObjects);
+	
+	// Find the GAS Objects
+	static void FindGASObjects(UObject* Class, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses);	
+	static void FindGASObjectsInStruct(UClass* Class, const void* StructInstance, UScriptStruct* StructType, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
+	
+	// Resolving types and values
+	static UClass* ResolvePropertyType(FProperty* Property);
+	static UClass* ResolveClassValue(FProperty* Property, UObject* Instance);
+	static UClass* ResolveClassValueFromElement(FProperty* Property, const void* ElementPtr);
+	
+	// Helper recursion function(s)
+	static void RecurseArray(UClass* Class, FArrayProperty* Prop, const void* Instance, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses)
+;
+	
+	// still need replacement
 	static TMap<UClass*, TArray<FDiscoveredTagContainer>> FindTags(UClass* CDO);
-	static FDiscoveredAbility FindAbilities(UClass* CDO);
-	static FDiscoveredEffect FindEffects(UClass* CDO);
 	static TMap<UClass*, FDiscoveredCue> FindCues(UClass* CDO);
+	
 	static bool LogResults(TArray<GASValidationResult>& Results);
 	static TArray<TSharedRef<IGASValidationRule>> Rules;
 };
