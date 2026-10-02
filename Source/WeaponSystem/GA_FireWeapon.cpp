@@ -24,7 +24,7 @@ UGA_FireWeapon::UGA_FireWeapon()
     ActivationOwnedTags.AddTag(WeaponTags::State_Weapon_Firing.GetTag());
     
     // error handling
-    /*FName UnregisteredName = FName("Bypass.The.System. ");
+    FName UnregisteredName = FName("Bypass.The.System. ");
     FGameplayTag* RogueTagPtr = reinterpret_cast<FGameplayTag*>(&UnregisteredName);
     FGameplayTag RogueTag = *RogueTagPtr;
     ActivationOwnedTags.AddTagFast(RogueTag);
@@ -32,7 +32,7 @@ UGA_FireWeapon::UGA_FireWeapon()
     FGameplayTag* RogueTag1Ptr = reinterpret_cast<FGameplayTag*>(&UnregisteredName1);
     FGameplayTag Rogue1Tag = *RogueTag1Ptr;
     ActivationOwnedTags.AddTagFast(Rogue1Tag);
-    ActivationOwnedTags.AddTagFast(FGameplayTag());*/
+    ActivationOwnedTags.AddTagFast(FGameplayTag());
 }
 
 bool UGA_FireWeapon::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,

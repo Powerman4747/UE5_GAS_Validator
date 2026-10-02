@@ -99,7 +99,7 @@ private:
 	static TMap<UClass*, TArray<FDiscoveredTagContainer>> FindTags(UClass* CDO);
 	static TMap<UClass*, FDiscoveredCue> FindCues(UClass* CDO);
 	
-	static bool LogResults(TArray<GASValidationResult>& Results);
+	static bool LogResults(TArray<GASValidationResult>& Results, FString AssetName = "");
 	static TArray<TSharedRef<IGASValidationRule>> Rules;
 };
 

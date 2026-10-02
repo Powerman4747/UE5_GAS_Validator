@@ -48,6 +48,6 @@ void TagRegistryValidationRule::Validate(const GASObjects& Objects, TArray<GASVa
 					Results.Add(Result);
 				}
 			}
-	}
+		}
 	}
 }

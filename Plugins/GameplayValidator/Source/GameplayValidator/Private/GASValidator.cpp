@@ -111,7 +111,7 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 	}
 	GASObjects Objects;
 	TSet<UClass*> VisitedSet;
-	FindGASObjects(InAsset, Objects, VisitedSet); // Replace
+	FindGASObjects(InAsset, Objects, VisitedSet);
 	
 	TArray<GASValidationResult> Results;
 	for (auto Rule : Rules)
@@ -119,7 +119,7 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 		Rule->Validate(Objects, Results);
 	}
 	
-	bool bHasError = UGASValidator::LogResults(Results);
+	bool bHasError = UGASValidator::LogResults(Results, InAsset->GetName());
 	
 	if (bHasError)
 	{
@@ -320,6 +320,57 @@ void UGASValidator::FindGASObjects(UObject* Object, GASObjects& GASObjects, TSet
 	
 	if (Class->ImplementsInterface(UAbilitySystemInterface::StaticClass()))
 	{
+		const IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Object);
+		if (!ASI)
+		{
+			return; // ImplementsInterface said yes, but Cast failed — shouldn't normally happen, defensive only
+		}
+
+		UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent(); // the guarded virtual call
+
+		if (!ASC)
+		{
+			return;
+		}
+
+		for (const FAttributeDefaults& Entry : ASC->DefaultStartingData)
+		{
+			
+			if (!Entry.Attributes)
+			{
+				UE_LOG(LogGASValidator, Log, TEXT("%s no attributes set"), *Class->GetName())				
+				continue;
+			}
+
+			if (!VisitedClasses.Contains(Entry.Attributes))
+			{
+				DiscoverAttributes(Entry.Attributes, GASObjects);
+			}
+
+			if (!Entry.DefaultStartingTable)
+		    {
+				UE_LOG(LogGASValidator, Log, TEXT("%s no data table set"), *Class->GetName())				
+		        continue;
+		    }
+			
+			TArray<FDiscoveredAttribute>& Attributes = GASObjects.Attributes[Entry.Attributes];
+
+			for (auto& Attribute : Attributes)
+			{
+				Attribute.SourceOfValue = Entry.DefaultStartingTable->GetFName();
+				
+				const FString AttributeName = Attribute.Attribute.AttributeName;
+				const FString RowNameString = FString::Printf(TEXT("%s.%s"), *Entry.Attributes->GetName(), *AttributeName);
+				const FName RowName(*RowNameString);
+				const FAttributeMetaData* Row = Entry.DefaultStartingTable->FindRow<FAttributeMetaData>(RowName, TEXT("GASValidator"));
+                                   						
+				if (Row)
+				{
+					float BaseValue = Row->BaseValue;
+					Attribute.Value = BaseValue;
+				}
+			}
+		}
 		// Check attributes if exists, if not add anyway add the data to the Discovered attribute
 	}
 }
@@ -362,7 +413,8 @@ void UGASValidator::FindGASObjectsInStruct(UClass* Class, const void* StructInst
             continue;
         }
 
-        /*UClass* Value = ResolveClassValueFromElement(Property, StructInstance);
+    	const void* ValuePtr = Property->ContainerPtrToValuePtr<void>(StructInstance);
+        UClass* Value = ResolveClassValueFromElement(Property, ValuePtr);
         if (!Value || !IsValid(Value) || VisitedClasses.Contains(Value))
         {
             continue;
@@ -371,7 +423,7 @@ void UGASValidator::FindGASObjectsInStruct(UClass* Class, const void* StructInst
     	if (auto* CDO = Value->GetDefaultObject())
     	{
     		FindGASObjects(CDO, GASObjects, VisitedClasses);
-    	}*/
+    	}
     }
 }
 
@@ -507,12 +559,13 @@ TMap<UClass*, FDiscoveredCue> UGASValidator::FindCues(UClass* CDO)
 	return TMap<UClass*, FDiscoveredCue>();
 }
 
-bool UGASValidator::LogResults(TArray<GASValidationResult>& Results)
+bool UGASValidator::LogResults(TArray<GASValidationResult>& Results, FString AssetName)
 {
 	bool bHasError = false;
+	
 	for (auto Result : Results)
 	{
-		UE_LOG(LogGASValidator, Log, TEXT("%s"), *Result.Message)
+		UE_LOG(LogGASValidator, Log, TEXT("%s: %s"), *AssetName, *Result.Message)
 		
 		if (Result.Severity == EGASValidationSeverity::ERROR)
 		{
