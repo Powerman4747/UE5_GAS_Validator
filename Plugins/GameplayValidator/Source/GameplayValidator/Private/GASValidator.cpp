@@ -11,6 +11,7 @@
 
 #include "Engine/Blueprint.h"
 #include "Editor.h"
+#include "GameplayCueSet.h"
 #include "Rules/GASValidationRule.h"
 #include "Rules/NonZeroValidationRule.h"
 #include "Rules/TagRegistryValidationRule.h"
@@ -81,22 +82,27 @@ void UGASValidator::RunValidator()
 bool UGASValidator::CanValidateAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset,
 	FDataValidationContext& InContext) const
 {
-	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
-	{
-		if (Blueprint->GeneratedClass)
-		{
-			InAsset = Blueprint->GeneratedClass->GetDefaultObject();
-		}
-	}
+	UClass* ClassToCheck = InAsset->GetClass();
+
+    if (const UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+    {
+        ClassToCheck = Blueprint->GeneratedClass;
+    }
+
+    if (!ClassToCheck)
+    {
+        return false;
+    }
+
+    if (ClassToCheck->IsChildOf(UGameplayAbility::StaticClass())
+        || ClassToCheck->IsChildOf(UGameplayEffect::StaticClass())
+        || ClassToCheck->IsChildOf(UAttributeSet::StaticClass())
+        || ClassToCheck->ImplementsInterface(UAbilitySystemInterface::StaticClass()))
+    {
+        return true;
+    }
 	
-	GASObjects GASObjects;
-	TSet<UClass*> VisitedClasses;
-	UGASValidator::FindGASObjects(InAsset, GASObjects, VisitedClasses);
-	
-	bool bIsAbility = InAsset->IsA(UGameplayAbility::StaticClass());
-	bool bIsEffect = InAsset->IsA(UGameplayEffect::StaticClass());
-	
-	return bIsAbility || bIsEffect || !GASObjects.Attributes.IsEmpty() || !GASObjects.TagContainers.IsEmpty();
+	return UGASValidator::HasGASProperties(ClassToCheck);
 }
 
 EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset,
@@ -338,7 +344,6 @@ void UGASValidator::FindGASObjects(UObject* Object, GASObjects& GASObjects, TSet
 			
 			if (!Entry.Attributes)
 			{
-				UE_LOG(LogGASValidator, Log, TEXT("%s no attributes set"), *Class->GetName())				
 				continue;
 			}
 
@@ -349,7 +354,6 @@ void UGASValidator::FindGASObjects(UObject* Object, GASObjects& GASObjects, TSet
 
 			if (!Entry.DefaultStartingTable)
 		    {
-				UE_LOG(LogGASValidator, Log, TEXT("%s no data table set"), *Class->GetName())				
 		        continue;
 		    }
 			
@@ -425,6 +429,47 @@ void UGASValidator::FindGASObjectsInStruct(UClass* Class, const void* StructInst
     		FindGASObjects(CDO, GASObjects, VisitedClasses);
     	}
     }
+}
+
+bool UGASValidator::HasGASProperties(UClass* Class)
+{
+	for (TFieldIterator<FProperty> PropIt(Class); PropIt; ++PropIt)
+	{
+		FProperty* Property = *PropIt;
+		UClass* PropertyType = UGASValidator::ResolvePropertyType(Property);
+		if (!PropertyType)
+		{
+			if (FStructProperty* StructProp = CastField<FStructProperty>(Property))
+			{
+				if (StructProp->Struct == FGameplayTagContainer::StaticStruct())
+				{
+					return true;
+				}
+			}
+			else if (FArrayProperty* ArrayProp = CastField<FArrayProperty>(Property))
+			{
+				// Has GAS Property in array
+				UClass* InnerType = ResolvePropertyType(ArrayProp->Inner);
+				if (InnerType && (InnerType->IsChildOf(UAttributeSet::StaticClass())
+					|| InnerType->IsChildOf(UGameplayAbility::StaticClass())
+					|| InnerType->IsChildOf(UGameplayEffect::StaticClass())
+					|| InnerType->IsChildOf(UAbilitySystemComponent::StaticClass())))
+				{
+					return true;
+				}
+			}
+			continue;
+		}
+		
+		if (PropertyType->IsChildOf(UAttributeSet::StaticClass()) 
+			|| PropertyType->IsChildOf(UGameplayAbility::StaticClass()) 
+			|| PropertyType->IsChildOf(UGameplayEffect::StaticClass()))
+		{
+			return true;
+		}
+	}
+	
+	return false;
 }
 
 UClass* UGASValidator::ResolvePropertyType(FProperty* Property)

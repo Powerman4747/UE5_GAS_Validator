@@ -85,6 +85,7 @@ private:
 	// Find the GAS Objects
 	static void FindGASObjects(UObject* Class, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses);	
 	static void FindGASObjectsInStruct(UClass* Class, const void* StructInstance, UScriptStruct* StructType, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
+	static bool HasGASProperties(UClass* Class);
 	
 	// Resolving types and values
 	static UClass* ResolvePropertyType(FProperty* Property);
