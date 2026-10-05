@@ -44,7 +44,7 @@ void TagRegistryValidationRule::Validate(const GASObjects& Objects, TArray<GASVa
 					Result.RuleName = GetRuleName();
 					Result.Severity = EGASValidationSeverity::ERROR;
 					Result.Message = FString::Printf(
-						TEXT("'%s': unregisterred tag found in '%s'"), *Pair.Key->GetFName().ToString(), *Container.PropertyName.ToString());
+						TEXT("'%s': unregistered tag found in '%s'"), *Pair.Key->GetFName().ToString(), *Container.PropertyName.ToString());
 					Results.Add(Result);
 				}
 			}

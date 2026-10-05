@@ -6,6 +6,7 @@
 #include "AttributeSet.h"
 #include "EditorValidatorBase.h"
 #include "GameplayTagContainer.h"
+#include "ScalableFloat.h"
 #include "GASValidator.generated.h"
 
 /**
@@ -13,6 +14,8 @@
  */
 
 
+enum class EGameplayEffectMagnitudeCalculation : uint8;
+class UGameplayModMagnitudeCalculation;
 struct GASValidationResult;
 class UAttributeSet;
 class UGameplayEffect;
@@ -44,11 +47,34 @@ struct FDiscoveredEffectReference
 	TSubclassOf<UGameplayEffect> EffectClass;
 };
 
+struct FDiscoveredModifier
+{
+	FGameplayAttribute Attribute; // do not like this bu needs to have for checking... has no value
+	
+	EGameplayEffectMagnitudeCalculation TypeOfCalculation;
+	
+	// Scalable float
+	float FloatValue;
+	
+	// Custom Calculation Class
+	TSubclassOf<UGameplayModMagnitudeCalculation> CalculationClassReference;
+	
+	// AttributeBased
+	FGameplayAttribute BasedOnAttribute;
+	
+	// SetByCaller
+	FGameplayTag CallableTag;
+	FName CallableName; // only code or blueprint
+};
+
 struct FDiscoveredEffect
 {
 	TArray<FDiscoveredCue> Cues;
+	TArray<FDiscoveredModifier> Modifiers;
 	TArray<FDiscoveredEffectReference> Effects;
 };
+
+
 
 struct FDiscoveredAbility
 {
@@ -94,12 +120,7 @@ private:
 	static UClass* ResolveClassValueFromElement(FProperty* Property, const void* ElementPtr);
 	
 	// Helper recursion function(s)
-	static void RecurseArray(UClass* Class, FArrayProperty* Prop, const void* Instance, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses)
-;
-	
-	// still need replacement
-	static TMap<UClass*, TArray<FDiscoveredTagContainer>> FindTags(UClass* CDO);
-	static TMap<UClass*, FDiscoveredCue> FindCues(UClass* CDO);
+	static void RecurseArray(UClass* Class, FArrayProperty* Prop, const void* Instance, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
 	
 	static bool LogResults(TArray<GASValidationResult>& Results, FString AssetName = "");
 	static TArray<TSharedRef<IGASValidationRule>> Rules;
