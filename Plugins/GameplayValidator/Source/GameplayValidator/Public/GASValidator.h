@@ -47,6 +47,7 @@ struct FDiscoveredEffectReference
 struct FDiscoveredEffect
 {
 	TArray<FDiscoveredCue> Cues;
+	TArray<FDiscoveredEffectReference> Effects;
 };
 
 struct FDiscoveredAbility

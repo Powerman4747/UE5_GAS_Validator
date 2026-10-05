@@ -12,6 +12,8 @@
 #include "Engine/Blueprint.h"
 #include "Editor.h"
 #include "GameplayCueSet.h"
+#include "GameplayEffectComponent.h"
+#include "Rules/ConditionalEffectResolveValidationRule.h"
 #include "Rules/GASValidationRule.h"
 #include "Rules/NonZeroValidationRule.h"
 #include "Rules/TagRegistryValidationRule.h"
@@ -21,6 +23,7 @@ TArray<TSharedRef<IGASValidationRule>> UGASValidator::Rules;
 #ifndef USE_NO_STANDARD_RULES
 GAS_VALIDATION_REGISTER_RULE(NonZeroValidationRule); 
 GAS_VALIDATION_REGISTER_RULE(TagRegistryValidationRule); 
+GAS_VALIDATION_REGISTER_RULE(ConditionalEffectResolveValidationRule); 
 #endif
 
 void UGASValidator::RunValidator()
@@ -150,14 +153,15 @@ FDiscoveredAbility& UGASValidator::DiscoverAbility(UClass* Class, GASObjects& GA
 	for (TFieldIterator<FProperty> PropIt(Class); PropIt; ++PropIt)
 	{
 		FProperty* Property = *PropIt;
-		auto* ReferencedClass = UGASValidator::ResolveClassValue(Property, CDO);
-		if (!ReferencedClass)
+		auto* PropertyType = UGASValidator::ResolvePropertyType(Property);
+		if (!PropertyType)
 		{
 			continue;
 		}
 		
-		if (ReferencedClass->IsChildOf(UGameplayEffect::StaticClass()))
+		if (PropertyType->IsChildOf(UGameplayEffect::StaticClass()))
 		{
+			auto* ReferencedClass = UGASValidator::ResolveClassValue(Property, CDO);
 			FDiscoveredEffectReference EffectReference;
 			EffectReference.PropertyName = Property->GetFName();
 			EffectReference.EffectClass = ReferencedClass;
@@ -181,26 +185,101 @@ FDiscoveredEffect& UGASValidator::DiscoverEffect(UClass* Class, GASObjects& GASO
 	auto* CDO = Class->GetDefaultObject();
 	for (TFieldIterator<FProperty> PropIt(Class); PropIt; ++PropIt)
 	{
-		/*FProperty* Property = *PropIt;
+		FProperty* Property = *PropIt;
 		FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Property);
 		if (!ArrayProperty)
 		{
-			continue;
-		}
-		
-		FStructProperty* InnerStruct = CastField<FStructProperty>(ArrayProperty->Inner);
-		if (!InnerStruct || InnerStruct->Struct != FGameplayEffectCue::StaticStruct())
-		{
-			continue;
+		    continue;
 		}
 
+		// Step 1 — correct cast for an array of object instances, any component subclass
+		FObjectProperty* InnerObject = CastField<FObjectProperty>(ArrayProperty->Inner);
+		if (!InnerObject || !InnerObject->PropertyClass->IsChildOf(UGameplayEffectComponent::StaticClass()))
+		{
+		    continue;
+		}
+
+		// Step 2 — read each component instance out of the array
 		FScriptArrayHelper Helper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(CDO));
 		for (int32 i = 0; i < Helper.Num(); ++i)
 		{
-			const FGameplayEffectCue* Cue = reinterpret_cast<const FGameplayEffectCue*>(Helper.GetRawPtr(i));
-		
-			// currently not needed
-		}*/
+		    uint8* ElementPtr = Helper.GetRawPtr(i);
+		    UObject* ComponentInstance = InnerObject->GetObjectPropertyValue(ElementPtr);
+
+		    if (!ComponentInstance)
+		    {
+		        continue;
+		    }
+
+		    // Step 3 — scan this component instance's own properties for Effect references
+		    for (TFieldIterator<FProperty> CompPropIt(ComponentInstance->GetClass()); CompPropIt; ++CompPropIt)
+		    {
+		        FProperty* CompProperty = *CompPropIt;
+		        UClass* CompPropertyType = UGASValidator::ResolvePropertyType(CompProperty);
+
+		        if (CompPropertyType && CompPropertyType->IsChildOf(UGameplayEffect::StaticClass()))
+		        {
+		            UClass* ResolvedValue = UGASValidator::ResolveClassValue(CompProperty, ComponentInstance);
+		            if (ResolvedValue)
+		            {
+		                FDiscoveredEffectReference Ref;
+		                Ref.PropertyName = CompProperty->GetFName();
+		                Ref.EffectClass = ResolvedValue;
+		                Effect.Effects.Add(Ref);
+		            }
+		            continue;
+		        }
+
+		        if (FArrayProperty* CompArrayProp = CastField<FArrayProperty>(CompProperty))
+		        {
+		            FScriptArrayHelper CompHelper(CompArrayProp, CompArrayProp->ContainerPtrToValuePtr<void>(ComponentInstance));
+
+		            if (FClassProperty* ArrayInnerClass = CastField<FClassProperty>(CompArrayProp->Inner))
+		            {
+		                if (ArrayInnerClass->MetaClass->IsChildOf(UGameplayEffect::StaticClass()))
+		                {
+		                    for (int32 j = 0; j < CompHelper.Num(); ++j)
+		                    {
+		                        UClass* ElementValue = Cast<UClass>(ArrayInnerClass->GetObjectPropertyValue(CompHelper.GetRawPtr(j)));
+		                        FDiscoveredEffectReference Ref;
+		                        Ref.PropertyName = CompProperty->GetFName();
+		                        Ref.EffectClass = ElementValue;
+		                        Effect.Effects.Add(Ref);
+		                    }
+		                }
+		            }
+		            else if (FStructProperty* ArrayInnerStruct = CastField<FStructProperty>(CompArrayProp->Inner))
+		            {
+		                if (ArrayInnerStruct->Struct == FConditionalGameplayEffect::StaticStruct())
+		                {
+		                    for (int32 j = 0; j < CompHelper.Num(); ++j)
+		                    {
+		                        const FConditionalGameplayEffect* Conditional =
+		                            reinterpret_cast<const FConditionalGameplayEffect*>(CompHelper.GetRawPtr(j));
+
+		                        FDiscoveredEffectReference Ref;
+		                        Ref.PropertyName = CompProperty->GetFName();
+		                        Ref.EffectClass = Conditional->EffectClass;
+		                        Effect.Effects.Add(Ref);
+		                    }
+		                }
+		                else if (ArrayInnerStruct->Struct == FGameplayEffectQuery::StaticStruct())
+		                {
+		                	for (int32 j = 0; j < CompHelper.Num(); ++j)
+		                	{
+		                		const FGameplayEffectQuery* Query =
+									reinterpret_cast<const FGameplayEffectQuery*>(CompHelper.GetRawPtr(j));
+
+		                		FDiscoveredEffectReference Ref;
+		                		Ref.PropertyName = CompProperty->GetFName();
+		                		Ref.EffectClass = Query->EffectDefinition;
+		                		Effect.Effects.Add(Ref);
+		                	}
+		                }
+		            }
+		        }
+		    }
+		}
 	}
 	
 	return GASObjects.Effects.Add(Class, Effect);
@@ -283,6 +362,10 @@ void UGASValidator::FindGASObjects(UObject* Object, GASObjects& GASObjects, TSet
 	{
 		DiscoverAttributes(Class, GASObjects);
 	}
+	else if (Object->IsA(UGameplayEffectComponent::StaticClass()))
+    {
+        FindGASObjects(Object, GASObjects, VisitedClasses);
+    }
 	
 	for (TFieldIterator<FProperty> PropIt(Class); PropIt; ++PropIt)
 	{
@@ -321,7 +404,6 @@ void UGASValidator::FindGASObjects(UObject* Object, GASObjects& GASObjects, TSet
 		{
 			FindGASObjects(CDO, GASObjects, VisitedClasses);
 		}
-
 	}
 	
 	if (Class->ImplementsInterface(UAbilitySystemInterface::StaticClass()))
