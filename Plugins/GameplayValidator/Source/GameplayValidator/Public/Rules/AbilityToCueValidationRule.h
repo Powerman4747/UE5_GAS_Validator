@@ -12,5 +12,5 @@ class GAMEPLAYVALIDATOR_API AbilityToCueValidationRule : public IGASValidationRu
 {
 public:
 	AbilityToCueValidationRule();
-	void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override;
+	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
 };

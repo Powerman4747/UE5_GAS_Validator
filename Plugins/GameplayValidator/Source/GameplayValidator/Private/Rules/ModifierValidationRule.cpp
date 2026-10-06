@@ -10,7 +10,7 @@ ModifierValidationRule::ModifierValidationRule() :
 {
 }
 
-void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final
+void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Effects)
 	{
@@ -19,7 +19,12 @@ void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValid
 		{
 			if (!Modifier.Attribute.IsValid())
 			{
-				// attribute invalid
+				GASValidationResult Result;
+				Result.RuleName = GetRuleName();
+				Result.Severity = EGASValidationSeverity::ERROR;
+				Result.Message = FString::Printf(
+					TEXT("'%s': Modifier attribute '%s' is invalid. Please change it to a valid attribute you have created 'AttributeSet.Attribute'"), *Pair.Key->GetFName().ToString(), *Modifier.Attribute.AttributeName);
+				Results.Add(Result);
 			}
 			
 			switch (Modifier.TypeOfCalculation)
@@ -28,7 +33,12 @@ void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValid
 				{
 					if (FMath::IsNearlyZero(Modifier.FloatValue))
 					{
-						// invalid
+						GASValidationResult Result;
+						Result.RuleName = GetRuleName();
+						Result.Severity = EGASValidationSeverity::ERROR;
+						Result.Message = FString::Printf(
+							TEXT("'%s': Modifer 'Scalable float', it doesn't do anything, because value is '%f'"), *Pair.Key->GetFName().ToString(), Modifier.FloatValue);
+						Results.Add(Result);
 					}
 					break;
 				}
@@ -36,7 +46,12 @@ void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValid
 				{
 					if (!Modifier.BasedOnAttribute.IsValid())
 					{
-						// invalid
+						GASValidationResult Result;
+						Result.RuleName = GetRuleName();
+						Result.Severity = EGASValidationSeverity::ERROR;
+						Result.Message = FString::Printf(
+							TEXT("'%s': Modifier 'Attribute Based', attribute '%s' is invalid. Please change it to a valid attribute you have created 'AttributeSet.Attribute'"), *Pair.Key->GetFName().ToString(), *Modifier.BasedOnAttribute.AttributeName);
+						Results.Add(Result);
 					}
 					break;
 				}
@@ -44,15 +59,34 @@ void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValid
 				{
 					if (Modifier.CalculationClassReference == nullptr)
 					{
-						// invalid
+						GASValidationResult Result;
+						Result.RuleName = GetRuleName();
+						Result.Severity = EGASValidationSeverity::ERROR;
+						Result.Message = FString::Printf(
+							TEXT("'%s': Modifier 'Custom Calculation Class', The class is not given. Please give a 'UGameplayModMagnitudeCalculation' class"), *Pair.Key->GetFName().ToString());
+						Results.Add(Result);
 					}
 					break;
 				}
 				case EGameplayEffectMagnitudeCalculation::SetByCaller:
 				{
-					if (!Modifier.CallableName.IsValid() || !Modifier.CallableTag.IsValid())
+					if (!Modifier.CallableTag.IsValid())
 					{
-						// invalid
+						GASValidationResult Result;
+						Result.RuleName = GetRuleName();
+						Result.Severity = EGASValidationSeverity::ERROR;
+						Result.Message = FString::Printf(
+							TEXT("'%s': Modifier 'Set By Caller', Please give a a valid tag 'AttributeSet.Attribute'"), *Pair.Key->GetFName().ToString());
+						Results.Add(Result);
+					}
+					if(Modifier.CallableName.IsNone())
+					{
+						GASValidationResult Result;
+						Result.RuleName = GetRuleName();
+						Result.Severity = EGASValidationSeverity::WARNING;
+						Result.Message = FString::Printf(
+							TEXT("'%s': Modifier 'Set By Caller', Can't resolve the name. Check yourself in code or in blueprints if it is set"), *Pair.Key->GetFName().ToString());
+						Results.Add(Result);
 					}
 					break;
 				}

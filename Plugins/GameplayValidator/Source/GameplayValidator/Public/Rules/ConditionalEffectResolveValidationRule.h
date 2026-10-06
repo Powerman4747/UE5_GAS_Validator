@@ -13,5 +13,5 @@ class GAMEPLAYVALIDATOR_API ConditionalEffectResolveValidationRule : public IGAS
 {
 public:
 	ConditionalEffectResolveValidationRule();
-	void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
+	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
 };

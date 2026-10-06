@@ -15,6 +15,7 @@
 #include "GameplayEffectComponent.h"
 #include "Rules/ConditionalEffectResolveValidationRule.h"
 #include "Rules/GASValidationRule.h"
+#include "Rules/ModifierValidationRule.h"
 #include "Rules/NonZeroValidationRule.h"
 #include "Rules/TagRegistryValidationRule.h"
 
@@ -24,6 +25,7 @@ TArray<TSharedRef<IGASValidationRule>> UGASValidator::Rules;
 GAS_VALIDATION_REGISTER_RULE(NonZeroValidationRule); 
 GAS_VALIDATION_REGISTER_RULE(TagRegistryValidationRule); 
 GAS_VALIDATION_REGISTER_RULE(ConditionalEffectResolveValidationRule); 
+GAS_VALIDATION_REGISTER_RULE(ModifierValidationRule); 
 #endif
 
 void UGASValidator::RunValidator()
@@ -301,7 +303,9 @@ FDiscoveredEffect& UGASValidator::DiscoverEffect(UClass* Class, GASObjects& GASO
 				// based on attribute
 				TArray<FGameplayEffectAttributeCaptureDefinition> CaptureDefinitions;
 				Modifier->ModifierMagnitude.GetAttributeCaptureDefinitions(CaptureDefinitions);
-				DiscoveredModifier.BasedOnAttribute = CaptureDefinitions[0].AttributeToCapture; // first is only for the BasedOnAttribute, if custom caluclation then it doesn't store everything anymore as I store only the first
+				
+				if (!CaptureDefinitions.IsEmpty()) 
+					DiscoveredModifier.BasedOnAttribute = CaptureDefinitions[0].AttributeToCapture; // first is only for the BasedOnAttribute, if custom calculation then it doesn't store everything anymore as I store only the first
 				
 				auto& SetByCaller = Modifier->ModifierMagnitude.GetSetByCallerFloat();
 				

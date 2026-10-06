@@ -13,7 +13,7 @@ class GAMEPLAYVALIDATOR_API RequiredTagValidationRule : IGASValidationRule
 {
 public:
 	RequiredTagValidationRule(FName InClassInClassName, FName InTagContainerName, TArray<FName> InTag);
-	void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override;
+	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
 	
 private:
 	FName ClassName;

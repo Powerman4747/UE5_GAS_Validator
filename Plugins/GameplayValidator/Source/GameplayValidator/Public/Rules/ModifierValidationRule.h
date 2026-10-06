@@ -12,5 +12,5 @@ class GAMEPLAYVALIDATOR_API ModifierValidationRule : public IGASValidationRule
 {
 public:
 	ModifierValidationRule();
-	void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
+	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
 };
