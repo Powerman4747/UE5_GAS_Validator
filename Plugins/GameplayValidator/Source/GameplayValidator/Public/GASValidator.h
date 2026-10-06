@@ -47,6 +47,12 @@ struct FDiscoveredEffectReference
 	TSubclassOf<UGameplayEffect> EffectClass;
 };
 
+struct FDiscoveredCalculationReference
+{
+	FName PropertyName;
+	TSubclassOf<UGameplayEffectCalculation> CalculationClass;
+};
+
 struct FDiscoveredModifier
 {
 	FGameplayAttribute Attribute; // do not like this bu needs to have for checking... has no value
@@ -57,7 +63,7 @@ struct FDiscoveredModifier
 	float FloatValue;
 	
 	// Custom Calculation Class
-	TSubclassOf<UGameplayModMagnitudeCalculation> CalculationClassReference;
+	FDiscoveredCalculationReference CalculationClassReference;
 	
 	// AttributeBased
 	FGameplayAttribute BasedOnAttribute;
@@ -67,14 +73,23 @@ struct FDiscoveredModifier
 	FName CallableName; // only code or blueprint
 };
 
+struct FDiscoveredCalculation
+{
+	TArray<FGameplayAttribute> CapturedAttributes;
+};
+
+struct FDiscoveredExecution
+{
+	FDiscoveredCalculationReference ExecutionClassReference;
+	TArray<FDiscoveredEffectReference> Effects;
+};
+
 struct FDiscoveredEffect
 {
 	TArray<FDiscoveredCue> Cues;
 	TArray<FDiscoveredModifier> Modifiers;
 	TArray<FDiscoveredEffectReference> Effects;
 };
-
-
 
 struct FDiscoveredAbility
 {
@@ -88,7 +103,8 @@ struct GASObjects
 	TMap<UClass*, TArray<FDiscoveredTagContainer>> TagContainers;
 	TMap<UClass*, FDiscoveredAbility> Abilities;
 	TMap<UClass*, FDiscoveredEffect> Effects;
-	TMap<UClass*, FDiscoveredEffect> Cues;
+	//TMap<UClass*, FDiscoveredEffect> Cues;
+	TMap<UClass*, FDiscoveredCalculation> Calculations;
 };
 
 UCLASS()
@@ -108,6 +124,7 @@ private:
 	static FDiscoveredEffect& DiscoverEffect(UClass* Class, GASObjects& GASObjects);
 	static TArray<FDiscoveredAttribute>& DiscoverAttributes(UClass* Class, GASObjects& GASObjects);
 	static TArray<FDiscoveredTagContainer>& DiscoverTags(UClass* Class, const void* Instance, GASObjects& GASObjects);
+	static FDiscoveredCalculation& DiscoverCalculations(UClass* Class, GASObjects& GASObjects);
 	
 	// Find the GAS Objects
 	static void FindGASObjects(UObject* Class, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses);	
