@@ -13,7 +13,7 @@ AbilityToCueValidationRule::AbilityToCueValidationRule() :
 {
 }
 
-void AbilityToCueValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
+void AbilityToCueValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	UGameplayCueManager* CueManager = UAbilitySystemGlobals::Get().GetGameplayCueManager();	
 	UGameplayCueSet* CueSet = CueManager->GetEditorCueSet();	

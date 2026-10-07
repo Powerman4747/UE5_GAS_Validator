@@ -13,7 +13,7 @@ RequiredTagValidationRule::RequiredTagValidationRule(FName InClassName, FName In
 	}
 }
 
-void RequiredTagValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
+void RequiredTagValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for ( const auto& Pair : Objects.TagContainers)
 	{
@@ -30,7 +30,7 @@ void RequiredTagValidationRule::Validate(const GASObjects& Objects, TArray<GASVa
 			{
 				if (!TagContainer.Container.HasTag(FGameplayTag(Tag)))
 				{
-					GASValidationResult Result;
+					FGASValidationResult Result;
 					Result.RuleName = GetRuleName();
 					Result.Severity = EGASValidationSeverity::ERROR;
 					Result.Message = FString::Printf(

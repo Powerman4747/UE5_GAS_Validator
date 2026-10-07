@@ -1,7 +1,7 @@
 ﻿#include "Discovery/GASDiscovery.h"
 #include "DataStructures/DiscoveryData.h"
 
-TArray<FDiscoveredAttribute>& GASDiscovery::DiscoverAttributes(UClass* Class, GASObjects& GASObjects)
+TArray<FDiscoveredAttribute>& GASDiscovery::DiscoverAttributes(UClass* Class, FGASObjects& GASObjects)
 {
 	if (auto* DiscoveredAttribute = GASObjects.Attributes.Find(Class))
 	{
@@ -20,7 +20,7 @@ TArray<FDiscoveredAttribute>& GASDiscovery::DiscoverAttributes(UClass* Class, GA
 						
 		FDiscoveredAttribute DiscoveredAttribute;
 		DiscoveredAttribute.Attribute = FGameplayAttribute(StructProp);
-		if (auto MetaData = StructProp->GetMetaDataMap())
+		if (const auto& MetaData = StructProp->GetMetaDataMap())
 		{
 			DiscoveredAttribute.Metadata = *MetaData;
 		}		

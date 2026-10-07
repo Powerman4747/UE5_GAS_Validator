@@ -12,5 +12,5 @@ class GAMEPLAYVALIDATOR_API CalculationAttributesValidationRule : public IGASVal
 {
 public:
 	CalculationAttributesValidationRule();
-	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
+	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) override final;
 };

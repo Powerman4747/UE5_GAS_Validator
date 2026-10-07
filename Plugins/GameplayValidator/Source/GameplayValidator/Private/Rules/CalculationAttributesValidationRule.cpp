@@ -8,7 +8,7 @@ CalculationAttributesValidationRule::CalculationAttributesValidationRule() :
 {
 }
 
-void CalculationAttributesValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
+void CalculationAttributesValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Calculations)
 	{
@@ -18,7 +18,7 @@ void CalculationAttributesValidationRule::Validate(const GASObjects& Objects, TA
 		{
 			if (!Attribute.IsValid())
 			{
-				GASValidationResult Result;
+				FGASValidationResult Result;
 				Result.RuleName = GetRuleName();
 				Result.Severity = EGASValidationSeverity::ERROR; 
 				Result.Message = FString::Printf(

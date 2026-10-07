@@ -64,7 +64,7 @@ void UGASValidator::RunValidator()
 	TArray<UClass*> NativeClasses;
 	GetDerivedClasses(UGameplayAbility::StaticClass(), NativeClasses, true);
 	
-	GASObjects Objects;
+	FGASObjects Objects;
 	TSet<UClass*> VisitedClasses;
 	for (UClass* Class : NativeClasses)
 	{
@@ -82,7 +82,7 @@ void UGASValidator::RunValidator()
 		FindGASObjects(Class->GetDefaultObject(), Objects, VisitedClasses);
 	}
 	
-	TArray<GASValidationResult> ValidationResults;
+	TArray<FGASValidationResult> ValidationResults;
 	for (auto Rule : Rules)
 	{
 		Rule->Validate(Objects, ValidationResults);
@@ -132,11 +132,11 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 			InAsset = Blueprint->GeneratedClass->GetDefaultObject();
 		}
 	}
-	GASObjects Objects;
+	FGASObjects Objects;
 	TSet<UClass*> VisitedSet;
 	FindGASObjects(InAsset, Objects, VisitedSet);
 	
-	TArray<GASValidationResult> Results;
+	TArray<FGASValidationResult> Results;
 	for (auto Rule : Rules)
 	{
 		Rule->Validate(Objects, Results);
@@ -154,7 +154,7 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 	return 	EDataValidationResult::Valid;
 }
 
-void UGASValidator::FindGASObjects(UObject* Object, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses)
+void UGASValidator::FindGASObjects(UObject* Object, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses)
 {
 	auto Class = Object->GetClass();
 	if (VisitedClasses.Contains(Class))
@@ -276,7 +276,7 @@ void UGASValidator::FindGASObjects(UObject* Object, GASObjects& GASObjects, TSet
 }
 
 void UGASValidator::FindGASObjectsInStruct(UClass* Class, const void* StructInstance, UScriptStruct* StructType,
-	GASObjects& GASObjects, TSet<UClass*>& VisitedClasses)
+	FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses)
 {
     if (!StructInstance || !StructType)
     {
@@ -368,7 +368,7 @@ bool UGASValidator::HasGASProperties(UClass* Class)
 	return false;
 }
 
-void UGASValidator::RecurseArray(UClass* Class, FArrayProperty* Prop, const void* Instance, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses)
+void UGASValidator::RecurseArray(UClass* Class, FArrayProperty* Prop, const void* Instance, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses)
 {
 	FScriptArrayHelper Helper(Prop, Prop->ContainerPtrToValuePtr<void>(Instance));
 
@@ -392,7 +392,7 @@ void UGASValidator::RecurseArray(UClass* Class, FArrayProperty* Prop, const void
 	}
 }
 
-bool UGASValidator::LogResults(TArray<GASValidationResult>& Results, FString AssetName)
+bool UGASValidator::LogResults(TArray<FGASValidationResult>& Results, FString AssetName)
 {
 	bool bHasError = false;
 	

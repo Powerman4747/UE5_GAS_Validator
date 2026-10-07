@@ -12,5 +12,5 @@ class GAMEPLAYVALIDATOR_API TagRegistryValidationRule : public IGASValidationRul
 {
 public:
 	TagRegistryValidationRule();
-	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
+	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) override final;
 };

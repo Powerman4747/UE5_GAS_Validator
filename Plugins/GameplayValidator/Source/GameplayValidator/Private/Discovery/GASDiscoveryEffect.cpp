@@ -5,7 +5,7 @@
 #include "DataStructures/DiscoveryData.h"
 #include "GASDiscoveryInternal.h"
 
-FDiscoveredEffect& GASDiscovery::DiscoverEffect(UClass* Class, GASObjects& GASObjects)
+FDiscoveredEffect& GASDiscovery::DiscoverEffect(UClass* Class, FGASObjects& GASObjects)
 {
 	if (auto* DiscoveredEffect = GASObjects.Effects.Find(Class))
 	{
@@ -45,8 +45,7 @@ FDiscoveredEffect& GASDiscovery::DiscoverEffect(UClass* Class, GASObjects& GASOb
 	
 						if (CompPropertyType && CompPropertyType->IsChildOf(UGameplayEffect::StaticClass()))
 						{
-							UClass* ResolvedValue = Private::ResolveClassValue(CompProperty, ComponentInstance);
-							if (ResolvedValue)
+							if (UClass* ResolvedValue = Private::ResolveClassValue(CompProperty, ComponentInstance))
 							{
 								FDiscoveredEffectReference Ref;
 								Ref.PropertyName = CompProperty->GetFName();

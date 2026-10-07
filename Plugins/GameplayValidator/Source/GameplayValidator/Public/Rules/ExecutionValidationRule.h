@@ -12,5 +12,5 @@ class GAMEPLAYVALIDATOR_API ExecutionValidationRule : public IGASValidationRule
 {
 public:
 	ExecutionValidationRule();
-	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
+	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) override final;
 };

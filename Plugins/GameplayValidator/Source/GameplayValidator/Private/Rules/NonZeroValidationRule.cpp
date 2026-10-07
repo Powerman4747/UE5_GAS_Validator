@@ -8,7 +8,7 @@ NonZeroValidationRule::NonZeroValidationRule() :
 {
 }
 
-void NonZeroValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
+void NonZeroValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Attributes)
 	{
@@ -19,7 +19,7 @@ void NonZeroValidationRule::Validate(const GASObjects& Objects, TArray<GASValida
 			// if this attribute will not have a DataTable then the others of this Attribute set also will not 
 			if (!Attribute.SourceOfValue.IsSet())
 			{
-				GASValidationResult Result;
+				FGASValidationResult Result;
 				Result.RuleName = GetRuleName();
 				Result.Severity = EGASValidationSeverity::ERROR;
 				Result.Message = FString::Printf(
@@ -31,7 +31,7 @@ void NonZeroValidationRule::Validate(const GASObjects& Objects, TArray<GASValida
 			if (!Attribute.Value.IsSet())
 			{
 				// Row in UDataTable could not be found...
-				GASValidationResult Result;
+				FGASValidationResult Result;
 				Result.RuleName = GetRuleName();
 				Result.Severity = EGASValidationSeverity::ERROR;
 				Result.Message = FString::Printf(
@@ -49,7 +49,7 @@ void NonZeroValidationRule::Validate(const GASObjects& Objects, TArray<GASValida
 			float Value = Attribute.Value.GetValue();
 			if (FMath::IsNearlyZero(Value))
 			{
-				GASValidationResult Result;
+				FGASValidationResult Result;
 				Result.RuleName = GetRuleName();
 				Result.Severity = EGASValidationSeverity::ERROR;
 				Result.Message = FString::Printf(

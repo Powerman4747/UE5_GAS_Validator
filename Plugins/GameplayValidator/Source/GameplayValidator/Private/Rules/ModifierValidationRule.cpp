@@ -10,7 +10,7 @@ ModifierValidationRule::ModifierValidationRule() :
 {
 }
 
-void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
+void ModifierValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Effects)
 	{
@@ -19,7 +19,7 @@ void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValid
 		{
 			if (!Modifier.Attribute.IsValid())
 			{
-				GASValidationResult Result;
+				FGASValidationResult Result;
 				Result.RuleName = GetRuleName();
 				Result.Severity = EGASValidationSeverity::ERROR;
 				Result.Message = FString::Printf(
@@ -33,7 +33,7 @@ void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValid
 				{
 					if (FMath::IsNearlyZero(Modifier.FloatValue))
 					{
-						GASValidationResult Result;
+						FGASValidationResult Result;
 						Result.RuleName = GetRuleName();
 						Result.Severity = EGASValidationSeverity::ERROR;
 						Result.Message = FString::Printf(
@@ -46,7 +46,7 @@ void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValid
 				{
 					if (!Modifier.BasedOnAttribute.IsValid())
 					{
-						GASValidationResult Result;
+						FGASValidationResult Result;
 						Result.RuleName = GetRuleName();
 						Result.Severity = EGASValidationSeverity::ERROR;
 						Result.Message = FString::Printf(
@@ -59,7 +59,7 @@ void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValid
 				{
 					if (Modifier.CalculationClassReference.CalculationClass == nullptr)
 					{
-						GASValidationResult Result;
+						FGASValidationResult Result;
 						Result.RuleName = GetRuleName();
 						Result.Severity = EGASValidationSeverity::ERROR;
 						Result.Message = FString::Printf(
@@ -72,7 +72,7 @@ void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValid
 				{
 					if (!Modifier.CallableTag.IsValid())
 					{
-						GASValidationResult Result;
+						FGASValidationResult Result;
 						Result.RuleName = GetRuleName();
 						Result.Severity = EGASValidationSeverity::ERROR;
 						Result.Message = FString::Printf(
@@ -81,7 +81,7 @@ void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValid
 					}
 					if(Modifier.CallableName.IsNone())
 					{
-						GASValidationResult Result;
+						FGASValidationResult Result;
 						Result.RuleName = GetRuleName();
 						Result.Severity = EGASValidationSeverity::WARNING;
 						Result.Message = FString::Printf(
