@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #include "Rules/TagRegistryValidationRule.h"
-#include "GASValidator.h"
 #include "GameplayTagsManager.h"
+#include "DataStructures/DiscoveryData.h"
 
 TagRegistryValidationRule::TagRegistryValidationRule() :
 	IGASValidationRule("TagRegistration")

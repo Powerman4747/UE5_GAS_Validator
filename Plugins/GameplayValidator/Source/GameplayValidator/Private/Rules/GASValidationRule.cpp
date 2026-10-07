@@ -3,7 +3,6 @@
 
 #include "Rules/GASValidationRule.h"
 
-
 IGASValidationRule::IGASValidationRule(FString Name)
 {
 	RuleName = Name;

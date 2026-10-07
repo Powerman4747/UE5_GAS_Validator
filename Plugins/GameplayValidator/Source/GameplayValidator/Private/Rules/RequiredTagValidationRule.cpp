@@ -1,6 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #include "Rules/RequiredTagValidationRule.h"
-#include "GasValidator.h"
+#include "DataStructures/DiscoveryData.h"
 
 RequiredTagValidationRule::RequiredTagValidationRule(FName InClassName, FName InTagContainerName, TArray<FName> InTags) :
 	IGASValidationRule("RequiredTag")

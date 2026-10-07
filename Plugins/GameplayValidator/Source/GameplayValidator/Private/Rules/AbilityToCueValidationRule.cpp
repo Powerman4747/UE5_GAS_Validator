@@ -4,8 +4,8 @@
 #include "AbilitySystemGlobals.h"
 #include "GameplayCueManager.h"
 #include "GameplayCueSet.h"
-#include "GASValidator.h"
 #include "GameplayEffect.h"
+#include "DataStructures/DiscoveryData.h"
 #include "Engine/Engine.h"
 
 AbilityToCueValidationRule::AbilityToCueValidationRule() :

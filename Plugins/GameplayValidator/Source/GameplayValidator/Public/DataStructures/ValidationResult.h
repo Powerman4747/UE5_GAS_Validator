@@ -1,4 +1,7 @@
-﻿enum class EGASValidationSeverity
+﻿#pragma once
+#include "CoreMinimal.h"
+
+enum class EGASValidationSeverity
 {
 	INFO,
 	WARNING,

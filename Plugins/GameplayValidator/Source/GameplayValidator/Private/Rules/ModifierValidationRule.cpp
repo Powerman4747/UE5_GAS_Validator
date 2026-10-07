@@ -3,7 +3,7 @@
 
 #include "GameplayEffect.h"
 #include "GameplayModMagnitudeCalculation.h"
-#include "GASValidator.h"
+#include "DataStructures/DiscoveryData.h"
 
 ModifierValidationRule::ModifierValidationRule() :
 	IGASValidationRule("ModifierValidation")

@@ -2,7 +2,7 @@
 #include "Rules/AbilityReachEffectValidationRule.h"
 
 #include "GameplayEffect.h"
-#include "GASValidator.h"
+#include "DataStructures/DiscoveryData.h"
 
 AbilityReachEffectValidationRule::AbilityReachEffectValidationRule() :
 IGASValidationRule("AbilityReachesEffect")

@@ -1,8 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Rules/CalculationAttributesValidationRule.h"
-
-#include "GASValidator.h"
+#include "DataStructures/DiscoveryData.h"
 
 CalculationAttributesValidationRule::CalculationAttributesValidationRule() :
 	IGASValidationRule("CalculationAttributes")

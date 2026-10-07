@@ -3,105 +3,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AttributeSet.h"
+
 #include "EditorValidatorBase.h"
-#include "GameplayTagContainer.h"
-#include "ScalableFloat.h"
+#include "DataStructures/ValidationResult.h"
 #include "GASValidator.generated.h"
 
 /**
  * 
  */
 
-
-class UGameplayEffectCalculation;
-enum class EGameplayEffectMagnitudeCalculation : uint8;
-class UGameplayModMagnitudeCalculation;
-struct GASValidationResult;
-class UAttributeSet;
-class UGameplayEffect;
+struct GASObjects;
 class IGASValidationRule;
-class UAbilitySystemComponent;
-
-struct FDiscoveredAttribute
-{
-	FGameplayAttribute Attribute; 
-	TOptional<FName> SourceOfValue;
-	TOptional<float> Value;
-	TMap<FName, FString> Metadata;
-};
-
-struct FDiscoveredTagContainer
-{
-	FName PropertyName;
-	FGameplayTagContainer Container;
-};
-
-struct FDiscoveredCue
-{
-	FGameplayTag Tag;
-};
-
-struct FDiscoveredEffectReference
-{
-	FName PropertyName; // could be Cost or Cooldown
-	TSubclassOf<UGameplayEffect> EffectClass;
-};
-
-struct FDiscoveredCalculationReference
-{
-	FName PropertyName;
-	TSubclassOf<UGameplayEffectCalculation> CalculationClass;
-};
-
-struct FDiscoveredModifier
-{
-	FGameplayAttribute Attribute; // do not like this bu needs to have for checking... has no value
-	
-	EGameplayEffectMagnitudeCalculation TypeOfCalculation;
-	
-	// Scalable float
-	float FloatValue;
-	
-	// Custom Calculation Class
-	FDiscoveredCalculationReference CalculationClassReference;
-	
-	// AttributeBased
-	FGameplayAttribute BasedOnAttribute;
-	
-	// SetByCaller
-	FGameplayTag CallableTag;
-	FName CallableName; // only code or blueprint
-};
-
-struct FDiscoveredCalculation
-{
-	TArray<FGameplayAttribute> CapturedAttributes;
-};
-
-struct FDiscoveredEffect
-{
-	TArray<FDiscoveredCue> Cues;
-	TArray<FDiscoveredModifier> Modifiers;
-	TArray<FDiscoveredCalculationReference> Executions;
-	TArray<FDiscoveredEffectReference> Effects;
-};
-
-struct FDiscoveredAbility
-{
-	TArray<FDiscoveredEffectReference> Effects;
-};
-
-
-struct GASObjects
-{
-	TMap<UClass*, TArray<FDiscoveredAttribute>> Attributes;
-	TMap<UClass*, TArray<FDiscoveredTagContainer>> TagContainers;
-	TMap<UClass*, FDiscoveredAbility> Abilities;
-	TMap<UClass*, FDiscoveredEffect> Effects;
-	//TMap<UClass*, FDiscoveredEffect> Cues;
-	TMap<UClass*, FDiscoveredCalculation> Calculations;
-};
+struct FDiscoveredCalculation;
+struct FDiscoveredTagContainer;
+struct FDiscoveredAttribute;
+struct FDiscoveredEffect;
+struct FDiscoveredAbility;
+struct GASValidationResult;
 
 UCLASS()
 class GAMEPLAYVALIDATOR_API UGASValidator : public UEditorValidatorBase
@@ -115,22 +33,10 @@ public:
 	EDataValidationResult ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset, FDataValidationContext& Context) override;
 	
 private:
-	// discover GAS Objects
-	static FDiscoveredAbility& DiscoverAbility(UClass* Class, GASObjects& GASObjects);
-	static FDiscoveredEffect& DiscoverEffect(UClass* Class, GASObjects& GASObjects);
-	static TArray<FDiscoveredAttribute>& DiscoverAttributes(UClass* Class, GASObjects& GASObjects);
-	static TArray<FDiscoveredTagContainer>& DiscoverTags(UClass* Class, const void* Instance, GASObjects& GASObjects);
-	static FDiscoveredCalculation& DiscoverCalculations(UClass* Class, GASObjects& GASObjects);
-	
 	// Find the GAS Objects
 	static void FindGASObjects(UObject* Class, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses);	
 	static void FindGASObjectsInStruct(UClass* Class, const void* StructInstance, UScriptStruct* StructType, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
 	static bool HasGASProperties(UClass* Class);
-	
-	// Resolving types and values
-	static UClass* ResolvePropertyType(FProperty* Property);
-	static UClass* ResolveClassValue(FProperty* Property, UObject* Instance);
-	static UClass* ResolveClassValueFromElement(FProperty* Property, const void* ElementPtr);
 	
 	// Helper recursion function(s)
 	static void RecurseArray(UClass* Class, FArrayProperty* Prop, const void* Instance, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses);

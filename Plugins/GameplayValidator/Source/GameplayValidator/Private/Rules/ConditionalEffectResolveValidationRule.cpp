@@ -1,8 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #include "Rules/ConditionalEffectResolveValidationRule.h"
 
-#include "GASValidator.h"
 #include "GameplayEffect.h"
+#include "DataStructures/DiscoveryData.h"
 
 
 ConditionalEffectResolveValidationRule::ConditionalEffectResolveValidationRule() :

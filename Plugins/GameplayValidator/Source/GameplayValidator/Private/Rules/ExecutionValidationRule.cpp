@@ -2,7 +2,7 @@
 #include "Rules/ExecutionValidationRule.h"
 
 #include "GameplayEffectCalculation.h"
-#include "GASValidator.h"
+#include "DataStructures/DiscoveryData.h"
 
 
 ExecutionValidationRule::ExecutionValidationRule() :
