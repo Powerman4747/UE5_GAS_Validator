@@ -3,23 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DataStructures/ValidationResult.h"
 
 struct GASObjects;
 class UObject; 
-
-enum class EGASValidationSeverity
-{
-	INFO,
-	WARNING,
-	ERROR
-};
-
-struct GASValidationResult
-{
-	FString RuleName;
-	EGASValidationSeverity Severity;
-	FString Message; // The reason of a warning or error
-};
 
 class GAMEPLAYVALIDATOR_API IGASValidationRule
 {
@@ -28,6 +15,9 @@ public:
 	FString GetRuleName();
 	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) = 0;
 	virtual ~IGASValidationRule() {};
+	
+protected:
+	GASValidationResult CreateResult(EGASValidationSeverity Severity, FString Message);
 	
 private:
 	FString RuleName;

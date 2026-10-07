@@ -14,6 +14,7 @@
 #include "GameplayCueSet.h"
 #include "GameplayEffectComponent.h"
 #include "GameplayModMagnitudeCalculation.h"
+#include "Rules/AbilityReachEffectValidationRule.h"
 #include "Rules/CalculationAttributesValidationRule.h"
 #include "Rules/ConditionalEffectResolveValidationRule.h"
 #include "Rules/ExecutionValidationRule.h"
@@ -31,6 +32,7 @@ GAS_VALIDATION_REGISTER_RULE(ConditionalEffectResolveValidationRule);
 GAS_VALIDATION_REGISTER_RULE(ModifierValidationRule); 
 GAS_VALIDATION_REGISTER_RULE(ExecutionValidationRule); 
 GAS_VALIDATION_REGISTER_RULE(CalculationAttributesValidationRule);
+GAS_VALIDATION_REGISTER_RULE(AbilityReachEffectValidationRule);
 #endif
 
 void UGASValidator::RunValidator()
