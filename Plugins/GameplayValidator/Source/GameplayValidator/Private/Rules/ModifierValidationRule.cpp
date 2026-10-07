@@ -5,12 +5,12 @@
 #include "GameplayModMagnitudeCalculation.h"
 #include "DataStructures/DiscoveryData.h"
 
-FModifierValidationRule::FModifierValidationRule() :
+ModifierValidationRule::ModifierValidationRule() :
 	IGASValidationRule("ModifierValidation")
 {
 }
 
-void FModifierValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
+void ModifierValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Effects)
 	{

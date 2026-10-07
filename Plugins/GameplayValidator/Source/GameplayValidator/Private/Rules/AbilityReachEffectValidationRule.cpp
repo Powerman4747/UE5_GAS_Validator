@@ -4,12 +4,12 @@
 #include "GameplayEffect.h"
 #include "DataStructures/DiscoveryData.h"
 
-FAbilityReachEffectValidationRule::FAbilityReachEffectValidationRule() :
+AbilityReachEffectValidationRule::AbilityReachEffectValidationRule() :
 IGASValidationRule("AbilityReachesEffect")
 {
 }
 
-void FAbilityReachEffectValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
+void AbilityReachEffectValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Abilities)
 	{

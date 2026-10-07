@@ -9,10 +9,10 @@
 /**
  * 
  */
-class GAMEPLAYVALIDATOR_API FRequiredTagValidationRule : IGASValidationRule
+class GAMEPLAYVALIDATOR_API RequiredTagValidationRule : IGASValidationRule
 {
 public:
-	FRequiredTagValidationRule(FName InClassInClassName, FName InTagContainerName, TArray<FName> InTag);
+	RequiredTagValidationRule(FName InClassInClassName, FName InTagContainerName, TArray<FName> InTag);
 	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) override final;
 	
 private:

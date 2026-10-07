@@ -5,12 +5,12 @@
 #include "DataStructures/DiscoveryData.h"
 
 
-FExecutionValidationRule::FExecutionValidationRule() :
+ExecutionValidationRule::ExecutionValidationRule() :
 	IGASValidationRule("ExecutionValidation")
 {
 }
 
-void FExecutionValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
+void ExecutionValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Effects)
 	{

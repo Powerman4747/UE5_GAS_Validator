@@ -3,12 +3,12 @@
 #include "AttributeSet.h"
 #include "DataStructures/DiscoveryData.h"
 
-FNonZeroValidationRule::FNonZeroValidationRule() :
+NonZeroValidationRule::NonZeroValidationRule() :
 	IGASValidationRule("AttributeNonZero")
 {
 }
 
-void FNonZeroValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
+void NonZeroValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Attributes)
 	{

@@ -11,9 +11,9 @@ class UAbilitySystemComponent;
 /**
  * 
  */
-class GAMEPLAYVALIDATOR_API FNonZeroValidationRule : public IGASValidationRule
+class GAMEPLAYVALIDATOR_API NonZeroValidationRule : public IGASValidationRule
 {
 public:
-	FNonZeroValidationRule();
+	NonZeroValidationRule();
 	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) override final;
 };
