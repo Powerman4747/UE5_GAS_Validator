@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-struct GASObjects;
+struct FGASObjects;
 struct FDiscoveredAbility;
 struct FDiscoveredEffect;
 struct FDiscoveredAttribute;
@@ -9,9 +9,9 @@ struct FDiscoveredCalculation;
 
 namespace GASDiscovery
 {
-	FDiscoveredAbility& DiscoverAbility(UClass* Class, GASObjects& GASObjects);
-	FDiscoveredEffect& DiscoverEffect(UClass* Class, GASObjects& GASObjects);
-	TArray<FDiscoveredAttribute>& DiscoverAttributes(UClass* Class, GASObjects& GASObjects);
-	TArray<FDiscoveredTagContainer>& DiscoverTags(UClass* Class, const void* Instance, GASObjects& GASObjects);
-	FDiscoveredCalculation& DiscoverCalculations(UClass* Class, GASObjects& GASObjects);
+	FDiscoveredAbility& DiscoverAbility(UClass* Class, FGASObjects& GASObjects);
+	FDiscoveredEffect& DiscoverEffect(UClass* Class, FGASObjects& GASObjects);
+	TArray<FDiscoveredAttribute>& DiscoverAttributes(UClass* Class, FGASObjects& GASObjects);
+	TArray<FDiscoveredTagContainer>& DiscoverTags(UClass* Class, const void* Instance, FGASObjects& GASObjects);
+	FDiscoveredCalculation& DiscoverCalculations(UClass* Class, FGASObjects& GASObjects);
 }

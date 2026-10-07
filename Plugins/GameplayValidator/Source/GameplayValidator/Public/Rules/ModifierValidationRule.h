@@ -8,9 +8,9 @@
 /**
  * 
  */
-class GAMEPLAYVALIDATOR_API ModifierValidationRule : public IGASValidationRule
+class GAMEPLAYVALIDATOR_API FModifierValidationRule : public IGASValidationRule
 {
 public:
-	ModifierValidationRule();
-	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
+	FModifierValidationRule();
+	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) override final;
 };

@@ -16,6 +16,6 @@ class GAMEPLAYVALIDATOR_API UGASValidatorCommandlet : public UCommandlet
 	
 public:
 	UGASValidatorCommandlet();
-	int32 Main(const FString &params) override;
+	virtual int32 Main(const FString &Params) override;
 	
 };

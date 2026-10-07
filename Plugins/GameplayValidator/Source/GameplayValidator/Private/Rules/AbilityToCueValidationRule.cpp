@@ -8,12 +8,12 @@
 #include "DataStructures/DiscoveryData.h"
 #include "Engine/Engine.h"
 
-AbilityToCueValidationRule::AbilityToCueValidationRule() :
+FAbilityToCueValidationRule::FAbilityToCueValidationRule() :
 	IGASValidationRule("AbilityToCuePipeline")
 {
 }
 
-void AbilityToCueValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
+void FAbilityToCueValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	UGameplayCueManager* CueManager = UAbilitySystemGlobals::Get().GetGameplayCueManager();	
 	UGameplayCueSet* CueSet = CueManager->GetEditorCueSet();	

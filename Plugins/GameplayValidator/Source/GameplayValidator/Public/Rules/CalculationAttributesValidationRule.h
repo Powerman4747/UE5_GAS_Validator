@@ -8,9 +8,9 @@
 /**
  * 
  */
-class GAMEPLAYVALIDATOR_API CalculationAttributesValidationRule : public IGASValidationRule
+class GAMEPLAYVALIDATOR_API FCalculationAttributesValidationRule : public IGASValidationRule
 {
 public:
-	CalculationAttributesValidationRule();
-	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
+	FCalculationAttributesValidationRule();
+	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) override final;
 };

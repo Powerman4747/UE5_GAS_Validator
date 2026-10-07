@@ -77,7 +77,7 @@ struct FDiscoveredAbility
 };
 
 
-struct GASObjects
+struct FGASObjects
 {
 	TMap<UClass*, TArray<FDiscoveredAttribute>> Attributes;
 	TMap<UClass*, TArray<FDiscoveredTagContainer>> TagContainers;

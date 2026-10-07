@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "DataStructures/ValidationResult.h"
 
-struct GASObjects;
+struct FGASObjects;
 class UObject; 
 
 class GAMEPLAYVALIDATOR_API IGASValidationRule
@@ -13,11 +13,11 @@ class GAMEPLAYVALIDATOR_API IGASValidationRule
 public:
 	IGASValidationRule(FString Name);
 	FString GetRuleName();
-	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) = 0;
+	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) = 0;
 	virtual ~IGASValidationRule() {};
 	
 protected:
-	GASValidationResult CreateResult(EGASValidationSeverity Severity, FString Message);
+	FGASValidationResult CreateResult(EGASValidationSeverity Severity, FString Message);
 	
 private:
 	FString RuleName;

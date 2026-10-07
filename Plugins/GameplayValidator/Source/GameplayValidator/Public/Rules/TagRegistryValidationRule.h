@@ -8,9 +8,9 @@
 /**
  * 
  */
-class GAMEPLAYVALIDATOR_API TagRegistryValidationRule : public IGASValidationRule
+class GAMEPLAYVALIDATOR_API FTagRegistryValidationRule : public IGASValidationRule
 {
 public:
-	TagRegistryValidationRule();
-	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
+	FTagRegistryValidationRule();
+	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) override final;
 };

@@ -3,7 +3,7 @@
 #include "GASDiscoveryInternal.h"
 #include "DataStructures/DiscoveryData.h"
 
-FDiscoveredAbility& GASDiscovery::DiscoverAbility(UClass* Class, GASObjects& GASObjects)
+FDiscoveredAbility& GASDiscovery::DiscoverAbility(UClass* Class, FGASObjects& GASObjects)
 {	
 	if (auto* DiscoveredAbility = GASObjects.Abilities.Find(Class))
 	{
@@ -16,7 +16,7 @@ FDiscoveredAbility& GASDiscovery::DiscoverAbility(UClass* Class, GASObjects& GAS
 	for (TFieldIterator<FProperty> PropIt(Class); PropIt; ++PropIt)
 	{
 		FProperty* Property = *PropIt;
-		auto* PropertyType = Private::ResolvePropertyType(Property);
+		const auto* PropertyType = Private::ResolvePropertyType(Property);
 		if (!PropertyType)
 		{
 			continue;

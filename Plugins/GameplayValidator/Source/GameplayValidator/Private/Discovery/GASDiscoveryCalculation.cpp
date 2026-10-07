@@ -2,7 +2,7 @@
 #include "GameplayEffectAttributeCaptureDefinition.h"
 #include "DataStructures/DiscoveryData.h"
 
-FDiscoveredCalculation& GASDiscovery::DiscoverCalculations(UClass* Class, GASObjects& GASObjects)
+FDiscoveredCalculation& GASDiscovery::DiscoverCalculations(UClass* Class, FGASObjects& GASObjects)
 {
 	if (auto* DiscoveredCalculation = GASObjects.Calculations.Find(Class))
 	{
@@ -13,7 +13,7 @@ FDiscoveredCalculation& GASDiscovery::DiscoverCalculations(UClass* Class, GASObj
 	auto* CDO = Class->GetDefaultObject();
 	for (TFieldIterator<FArrayProperty> PropIt(Class); PropIt; ++PropIt)
 	{
-		FStructProperty* Struct = CastField<FStructProperty>(PropIt->Inner);
+		const FStructProperty* Struct = CastField<FStructProperty>(PropIt->Inner);
 		
 		if (!Struct || Struct->Struct != FGameplayEffectAttributeCaptureDefinition::StaticStruct())
 		{

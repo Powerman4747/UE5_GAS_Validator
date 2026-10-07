@@ -11,7 +11,7 @@ UGASValidatorCommandlet::UGASValidatorCommandlet()
 	LogToConsole = true;
 }
 
-int32 UGASValidatorCommandlet::Main(const FString& params)
+int32 UGASValidatorCommandlet::Main(const FString& Params)
 {
 	GLog->Log(TEXT("RAW MARKER: GAS Validator started"));
 	UGASValidator::RunValidator();

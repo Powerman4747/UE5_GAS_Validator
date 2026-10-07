@@ -8,9 +8,9 @@
 /**
  * 
  */
-class GAMEPLAYVALIDATOR_API AbilityReachEffectValidationRule : public IGASValidationRule
+class GAMEPLAYVALIDATOR_API FAbilityReachEffectValidationRule : public IGASValidationRule
 {
 public:
-	AbilityReachEffectValidationRule();
-	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
+	FAbilityReachEffectValidationRule();
+	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) override final;
 };

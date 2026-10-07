@@ -5,12 +5,12 @@
 #include "DataStructures/DiscoveryData.h"
 
 
-ConditionalEffectResolveValidationRule::ConditionalEffectResolveValidationRule() :
+FConditionalEffectResolveValidationRule::FConditionalEffectResolveValidationRule() :
 	IGASValidationRule("ConditionalEffectResolve")
 {
 }
 
-void ConditionalEffectResolveValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
+void FConditionalEffectResolveValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Effects)
 	{
@@ -20,7 +20,7 @@ void ConditionalEffectResolveValidationRule::Validate(const GASObjects& Objects,
 		{
 			if (ConditionalEffect.EffectClass == nullptr)
 			{
-				GASValidationResult Result;
+				FGASValidationResult Result;
 				Result.RuleName = GetRuleName();
 				Result.Severity = EGASValidationSeverity::ERROR;
 				Result.Message = FString::Printf(
@@ -29,7 +29,7 @@ void ConditionalEffectResolveValidationRule::Validate(const GASObjects& Objects,
 			}
 			else if (ConditionalEffect.EffectClass == Pair.Key)
 			{
-				GASValidationResult Result;
+				FGASValidationResult Result;
 				Result.RuleName = GetRuleName();
 				Result.Severity = EGASValidationSeverity::ERROR;
 				Result.Message = FString::Printf(

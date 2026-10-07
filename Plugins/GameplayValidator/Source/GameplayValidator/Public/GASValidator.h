@@ -12,14 +12,9 @@
  * 
  */
 
-struct GASObjects;
+
 class IGASValidationRule;
-struct FDiscoveredCalculation;
-struct FDiscoveredTagContainer;
-struct FDiscoveredAttribute;
-struct FDiscoveredEffect;
-struct FDiscoveredAbility;
-struct GASValidationResult;
+struct FGASObjects;
 
 UCLASS()
 class GAMEPLAYVALIDATOR_API UGASValidator : public UEditorValidatorBase
@@ -29,19 +24,21 @@ public:
 	static void RunValidator();	
 	template<typename T, typename... TArgs>
 	static void AddRule(TArgs&&... Args);
-	bool CanValidateAsset_Implementation(const FAssetData& InAssetData, UObject* InObject, FDataValidationContext& InContext) const override;
-	EDataValidationResult ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset, FDataValidationContext& Context) override;
+	
+protected:
+	virtual bool CanValidateAsset_Implementation(const FAssetData& InAssetData, UObject* InObject, FDataValidationContext& InContext) const override;
+	virtual EDataValidationResult ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset, FDataValidationContext& Context) override;
 	
 private:
 	// Find the GAS Objects
-	static void FindGASObjects(UObject* Class, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses);	
-	static void FindGASObjectsInStruct(UClass* Class, const void* StructInstance, UScriptStruct* StructType, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
+	static void FindGASObjects(UObject* Class, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses);	
+	static void FindGASObjectsInStruct(UClass* Class, const void* StructInstance, UScriptStruct* StructType, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
 	static bool HasGASProperties(UClass* Class);
 	
 	// Helper recursion function(s)
-	static void RecurseArray(UClass* Class, FArrayProperty* Prop, const void* Instance, GASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
+	static void RecurseArray(UClass* Class, FArrayProperty* Prop, const void* Instance, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
 	
-	static bool LogResults(TArray<GASValidationResult>& Results, FString AssetName = "");
+	static bool LogResults(TArray<FGASValidationResult>& Results, FString AssetName = "");
 	static TArray<TSharedRef<IGASValidationRule>> Rules;
 };
 

@@ -2,7 +2,7 @@
 #include "Rules/RequiredTagValidationRule.h"
 #include "DataStructures/DiscoveryData.h"
 
-RequiredTagValidationRule::RequiredTagValidationRule(FName InClassName, FName InTagContainerName, TArray<FName> InTags) :
+FRequiredTagValidationRule::FRequiredTagValidationRule(FName InClassName, FName InTagContainerName, TArray<FName> InTags) :
 	IGASValidationRule("RequiredTag")
 {
 	ClassName = InClassName;
@@ -13,7 +13,7 @@ RequiredTagValidationRule::RequiredTagValidationRule(FName InClassName, FName In
 	}
 }
 
-void RequiredTagValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
+void FRequiredTagValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for ( const auto& Pair : Objects.TagContainers)
 	{
@@ -30,7 +30,7 @@ void RequiredTagValidationRule::Validate(const GASObjects& Objects, TArray<GASVa
 			{
 				if (!TagContainer.Container.HasTag(FGameplayTag(Tag)))
 				{
-					GASValidationResult Result;
+					FGASValidationResult Result;
 					Result.RuleName = GetRuleName();
 					Result.Severity = EGASValidationSeverity::ERROR;
 					Result.Message = FString::Printf(

@@ -3,12 +3,12 @@
 #include "GameplayTagsManager.h"
 #include "DataStructures/DiscoveryData.h"
 
-TagRegistryValidationRule::TagRegistryValidationRule() :
+FTagRegistryValidationRule::FTagRegistryValidationRule() :
 	IGASValidationRule("TagRegistration")
 {
 }
 
-void TagRegistryValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
+void FTagRegistryValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	auto& Manager = UGameplayTagsManager::Get();
 
@@ -21,7 +21,7 @@ void TagRegistryValidationRule::Validate(const GASObjects& Objects, TArray<GASVa
 			{
 				if (!Manager.IsValidGameplayTagString(Tag.ToString()))
 				{
-					GASValidationResult Result;
+					FGASValidationResult Result;
 					Result.RuleName = GetRuleName();
 					Result.Severity = EGASValidationSeverity::ERROR;
 					Result.Message = FString::Printf(
@@ -30,7 +30,7 @@ void TagRegistryValidationRule::Validate(const GASObjects& Objects, TArray<GASVa
 				}
 				else if (Manager.RequestGameplayTag(Tag.GetTagName()) == FGameplayTag() && Tag.IsValid())
 				{
-					GASValidationResult Result;
+					FGASValidationResult Result;
 					Result.RuleName = GetRuleName();
 					Result.Severity = EGASValidationSeverity::ERROR;
 					Result.Message = FString::Printf(
@@ -40,7 +40,7 @@ void TagRegistryValidationRule::Validate(const GASObjects& Objects, TArray<GASVa
 				
 				if (!Tag.IsValid())
 				{
-					GASValidationResult Result;
+					FGASValidationResult Result;
 					Result.RuleName = GetRuleName();
 					Result.Severity = EGASValidationSeverity::ERROR;
 					Result.Message = FString::Printf(

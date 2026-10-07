@@ -21,12 +21,12 @@ UClass* GASDiscovery::Private::ResolvePropertyType(FProperty* Property)
 
 UClass* GASDiscovery::Private::ResolveClassValue(FProperty* Property, UObject* Instance)
 {
-	if (FClassProperty* ClassProperty = CastField<FClassProperty>(Property))
+	if (const FClassProperty* ClassProperty = CastField<FClassProperty>(Property))
 	{
 		return Cast<UClass>(ClassProperty->GetObjectPropertyValue_InContainer(Instance));
 	}
 	
-	if (FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property))
+	if (const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property))
 	{
 		const UObject* Value = ObjectProperty->GetObjectPropertyValue_InContainer(Instance);
 		return Value ? Value->GetClass() : nullptr;
@@ -39,11 +39,11 @@ UClass* GASDiscovery::Private::ResolveClassValue(FProperty* Property, UObject* I
 
 UClass* GASDiscovery::Private::ResolveClassValueFromElement(FProperty* Property, const void* ElementPtr)
 {
-	if (FClassProperty* ClassProperty = CastField<FClassProperty>(Property))
+	if (const FClassProperty* ClassProperty = CastField<FClassProperty>(Property))
 	{
 		return Cast<UClass>(ClassProperty->GetObjectPropertyValue(ElementPtr));
 	}
-	if (FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property))
+	if (const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property))
 	{
 		const UObject* Value = ObjectProperty->GetObjectPropertyValue(ElementPtr);
 		return Value ? Value->GetClass() : nullptr;

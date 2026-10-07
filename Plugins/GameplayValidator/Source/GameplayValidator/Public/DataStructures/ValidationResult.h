@@ -9,7 +9,7 @@ enum class EGASValidationSeverity
 	UNRESOLVED
 };
 
-struct GASValidationResult
+struct FGASValidationResult
 {
 	FString RuleName;
 	EGASValidationSeverity Severity;

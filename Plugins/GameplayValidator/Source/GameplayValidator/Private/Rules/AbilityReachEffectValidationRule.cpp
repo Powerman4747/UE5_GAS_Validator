@@ -4,12 +4,12 @@
 #include "GameplayEffect.h"
 #include "DataStructures/DiscoveryData.h"
 
-AbilityReachEffectValidationRule::AbilityReachEffectValidationRule() :
+FAbilityReachEffectValidationRule::FAbilityReachEffectValidationRule() :
 IGASValidationRule("AbilityReachesEffect")
 {
 }
 
-void AbilityReachEffectValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
+void FAbilityReachEffectValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Abilities)
 	{
@@ -24,7 +24,7 @@ void AbilityReachEffectValidationRule::Validate(const GASObjects& Objects, TArra
 		{
 			if (!Ref.EffectClass)
 			{
-				GASValidationResult Result;
+				FGASValidationResult Result;
 				Result.RuleName = GetRuleName();
 				Result.Severity = EGASValidationSeverity::UNRESOLVED;
 				Result.Message = FString::Printf(
@@ -48,7 +48,7 @@ void AbilityReachEffectValidationRule::Validate(const GASObjects& Objects, TArra
 
 		if (!bAnyEffectHasContent)
 		{
-			GASValidationResult Result;
+			FGASValidationResult Result;
 			Result.RuleName = GetRuleName();
 			Result.Severity = EGASValidationSeverity::ERROR;
 			Result.Message = FString::Printf(

@@ -13,9 +13,9 @@ FString IGASValidationRule::GetRuleName()
 	return RuleName;
 }
 
-GASValidationResult IGASValidationRule::CreateResult(EGASValidationSeverity Severity, FString Message)
+FGASValidationResult IGASValidationRule::CreateResult(EGASValidationSeverity Severity, FString Message)
 {
-	GASValidationResult Result;
+	FGASValidationResult Result;
 	Result.RuleName = GetRuleName();
 	Result.Severity = Severity;
 	Result.Message = Message;

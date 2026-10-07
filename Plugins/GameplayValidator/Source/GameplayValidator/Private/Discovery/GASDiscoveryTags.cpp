@@ -1,7 +1,7 @@
 ﻿#include "Discovery/GASDiscovery.h"
 #include "DataStructures/DiscoveryData.h"
 
-TArray<FDiscoveredTagContainer>& GASDiscovery::DiscoverTags(UClass* Class, const void* Instance, GASObjects& GASObjects)
+TArray<FDiscoveredTagContainer>& GASDiscovery::DiscoverTags(UClass* Class, const void* Instance, FGASObjects& GASObjects)
 {
 	if (auto* DiscoveredTag = GASObjects.TagContainers.Find(Class))
 	{
@@ -11,7 +11,7 @@ TArray<FDiscoveredTagContainer>& GASDiscovery::DiscoverTags(UClass* Class, const
 	TArray<FDiscoveredTagContainer> TagContainers;
 	for (TFieldIterator<FStructProperty> PropIt(Class); PropIt; ++PropIt)
 	{
-		FStructProperty* StructProp = *PropIt;
+		const FStructProperty* StructProp = *PropIt;
 		if (StructProp->Struct != FGameplayTagContainer::StaticStruct())
 		{
 			continue;

@@ -5,12 +5,12 @@
 #include "DataStructures/DiscoveryData.h"
 
 
-ExecutionValidationRule::ExecutionValidationRule() :
+FExecutionValidationRule::FExecutionValidationRule() :
 	IGASValidationRule("ExecutionValidation")
 {
 }
 
-void ExecutionValidationRule::Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results)
+void FExecutionValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Effects)
 	{
@@ -20,7 +20,7 @@ void ExecutionValidationRule::Validate(const GASObjects& Objects, TArray<GASVali
 			if (!Execution.CalculationClass)
 			{
 				// Still can be wanted so the additional effects are always triggered
-				GASValidationResult Result;
+				FGASValidationResult Result;
 				Result.RuleName = GetRuleName();
 				Result.Severity = EGASValidationSeverity::WARNING; 
 				Result.Message = FString::Printf(

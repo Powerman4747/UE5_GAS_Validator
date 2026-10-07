@@ -9,9 +9,9 @@
 /**
  * 
  */
-class GAMEPLAYVALIDATOR_API ConditionalEffectResolveValidationRule : public IGASValidationRule
+class GAMEPLAYVALIDATOR_API FConditionalEffectResolveValidationRule : public IGASValidationRule
 {
 public:
-	ConditionalEffectResolveValidationRule();
-	virtual void Validate(const GASObjects& Objects, TArray<GASValidationResult>& Results) override final;
+	FConditionalEffectResolveValidationRule();
+	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) override final;
 };
