@@ -14,7 +14,9 @@
 #include "GameplayCueSet.h"
 #include "GameplayEffectComponent.h"
 #include "GameplayModMagnitudeCalculation.h"
+#include "Rules/CalculationAttributesValidationRule.h"
 #include "Rules/ConditionalEffectResolveValidationRule.h"
+#include "Rules/ExecutionValidationRule.h"
 #include "Rules/GASValidationRule.h"
 #include "Rules/ModifierValidationRule.h"
 #include "Rules/NonZeroValidationRule.h"
@@ -27,6 +29,8 @@ GAS_VALIDATION_REGISTER_RULE(NonZeroValidationRule);
 GAS_VALIDATION_REGISTER_RULE(TagRegistryValidationRule); 
 GAS_VALIDATION_REGISTER_RULE(ConditionalEffectResolveValidationRule); 
 GAS_VALIDATION_REGISTER_RULE(ModifierValidationRule); 
+GAS_VALIDATION_REGISTER_RULE(ExecutionValidationRule); 
+GAS_VALIDATION_REGISTER_RULE(CalculationAttributesValidationRule);
 #endif
 
 void UGASValidator::RunValidator()
@@ -406,7 +410,7 @@ FDiscoveredEffect& UGASValidator::DiscoverEffect(UClass* Class, GASObjects& GASO
 				}
 				else if (InnerStruct->Struct == FGameplayEffectExecutionDefinition::StaticStruct())
 				{
-					FDiscoveredExecution Execution;
+					FDiscoveredCalculationReference Execution;
 					for (TFieldIterator<FProperty> ExePropIt(FGameplayEffectExecutionDefinition::StaticStruct()); ExePropIt; ++ExePropIt)
 					{
 						FProperty* ExecuteProperty = *ExePropIt;	
@@ -423,10 +427,8 @@ FDiscoveredEffect& UGASValidator::DiscoverEffect(UClass* Class, GASObjects& GASO
 									UGASValidator::DiscoverCalculations(CalculationClass, GASObjects);
 								}
 								
-								FDiscoveredCalculationReference Ref;
-								Ref.PropertyName = ExecuteProperty->GetFName();
-								Ref.CalculationClass = CalculationClass;
-								Execution.ExecutionClassReference = Ref;
+								Execution.PropertyName = ExecuteProperty->GetFName();
+								Execution.CalculationClass = CalculationClass;
 							}
 							else if (FArrayProperty* CompArrayProp = CastField<FArrayProperty>(ExecuteProperty))
 							{
@@ -464,7 +466,9 @@ FDiscoveredEffect& UGASValidator::DiscoverEffect(UClass* Class, GASObjects& GASO
 								}
 							}
 						}
-					}				
+					}
+					
+					Effect.Executions.Add(Execution);
 				}
 			}
 		}
@@ -539,7 +543,7 @@ FDiscoveredCalculation& UGASValidator::DiscoverCalculations(UClass* Class, GASOb
 	auto* CDO = Class->GetDefaultObject();
 	for (TFieldIterator<FArrayProperty> PropIt(Class); PropIt; ++PropIt)
 	{
-		FStructProperty* Struct = CastField<FStructProperty>(*PropIt);
+		FStructProperty* Struct = CastField<FStructProperty>(PropIt->Inner);
 		
 		if (!Struct || Struct->Struct != FGameplayEffectAttributeCaptureDefinition::StaticStruct())
 		{

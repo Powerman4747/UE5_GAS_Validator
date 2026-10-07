@@ -57,7 +57,7 @@ void ModifierValidationRule::Validate(const GASObjects& Objects, TArray<GASValid
 				}
 				case EGameplayEffectMagnitudeCalculation::CustomCalculationClass:
 				{
-					if (Modifier.CalculationClassReference == nullptr)
+					if (Modifier.CalculationClassReference.CalculationClass == nullptr)
 					{
 						GASValidationResult Result;
 						Result.RuleName = GetRuleName();

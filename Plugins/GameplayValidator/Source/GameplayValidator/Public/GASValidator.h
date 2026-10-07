@@ -14,6 +14,7 @@
  */
 
 
+class UGameplayEffectCalculation;
 enum class EGameplayEffectMagnitudeCalculation : uint8;
 class UGameplayModMagnitudeCalculation;
 struct GASValidationResult;
@@ -78,16 +79,11 @@ struct FDiscoveredCalculation
 	TArray<FGameplayAttribute> CapturedAttributes;
 };
 
-struct FDiscoveredExecution
-{
-	FDiscoveredCalculationReference ExecutionClassReference;
-	TArray<FDiscoveredEffectReference> Effects;
-};
-
 struct FDiscoveredEffect
 {
 	TArray<FDiscoveredCue> Cues;
 	TArray<FDiscoveredModifier> Modifiers;
+	TArray<FDiscoveredCalculationReference> Executions;
 	TArray<FDiscoveredEffectReference> Effects;
 };
 
