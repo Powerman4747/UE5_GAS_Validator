@@ -20,11 +20,8 @@ void FExecutionValidationRule::Validate(const FGASObjects& Objects, TArray<FGASV
 			if (!Execution.CalculationClass)
 			{
 				// Still can be wanted so the additional effects are always triggered
-				FGASValidationResult Result;
-				Result.RuleName = GetRuleName();
-				Result.Severity = EGASValidationSeverity::WARNING; 
-				Result.Message = FString::Printf(
-					TEXT("'%s': Execution 'Calculation Class' is empty"), *Pair.Key->GetFName().ToString());
+				FGASValidationResult Result = CreateResult(EGASValidationSeverity::UNRESOLVED, 
+												FString::Printf(TEXT("'%s': Execution 'Calculation Class' is empty"), *Pair.Key->GetFName().ToString()));
 				Results.Add(Result);
 			}
 		}

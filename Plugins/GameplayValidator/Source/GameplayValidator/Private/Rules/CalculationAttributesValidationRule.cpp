@@ -18,11 +18,8 @@ void FCalculationAttributesValidationRule::Validate(const FGASObjects& Objects, 
 		{
 			if (!Attribute.IsValid())
 			{
-				FGASValidationResult Result;
-				Result.RuleName = GetRuleName();
-				Result.Severity = EGASValidationSeverity::ERROR; 
-				Result.Message = FString::Printf(
-					TEXT("'%s': Invalid Attribute in 'Relevant Attributes To Capture'"), *Pair.Key->GetFName().ToString());
+				FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+					FString::Printf(TEXT("'%s': Invalid Attribute in 'Relevant Attributes To Capture'"), *Pair.Key->GetFName().ToString()));
 				Results.Add(Result);
 			}
 		}

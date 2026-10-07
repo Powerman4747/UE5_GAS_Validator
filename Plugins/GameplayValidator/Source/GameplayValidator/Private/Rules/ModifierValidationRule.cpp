@@ -19,11 +19,8 @@ void FModifierValidationRule::Validate(const FGASObjects& Objects, TArray<FGASVa
 		{
 			if (!Modifier.Attribute.IsValid())
 			{
-				FGASValidationResult Result;
-				Result.RuleName = GetRuleName();
-				Result.Severity = EGASValidationSeverity::ERROR;
-				Result.Message = FString::Printf(
-					TEXT("'%s': Modifier attribute '%s' is invalid. Please change it to a valid attribute you have created 'AttributeSet.Attribute'"), *Pair.Key->GetFName().ToString(), *Modifier.Attribute.AttributeName);
+				FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+												FString::Printf(TEXT("'%s': Modifier attribute '%s' is invalid. Please change it to a valid attribute you have created 'AttributeSet.Attribute'"), *Pair.Key->GetFName().ToString(), *Modifier.Attribute.AttributeName));
 				Results.Add(Result);
 			}
 			
@@ -33,11 +30,8 @@ void FModifierValidationRule::Validate(const FGASObjects& Objects, TArray<FGASVa
 				{
 					if (FMath::IsNearlyZero(Modifier.FloatValue))
 					{
-						FGASValidationResult Result;
-						Result.RuleName = GetRuleName();
-						Result.Severity = EGASValidationSeverity::ERROR;
-						Result.Message = FString::Printf(
-							TEXT("'%s': Modifer 'Scalable float', it doesn't do anything, because value is '%f'"), *Pair.Key->GetFName().ToString(), Modifier.FloatValue);
+						FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+												FString::Printf(TEXT("'%s': Modifer 'Scalable float', it doesn't do anything, because value is '%f'"), *Pair.Key->GetFName().ToString(), Modifier.FloatValue));
 						Results.Add(Result);
 					}
 					break;
@@ -46,11 +40,8 @@ void FModifierValidationRule::Validate(const FGASObjects& Objects, TArray<FGASVa
 				{
 					if (!Modifier.BasedOnAttribute.IsValid())
 					{
-						FGASValidationResult Result;
-						Result.RuleName = GetRuleName();
-						Result.Severity = EGASValidationSeverity::ERROR;
-						Result.Message = FString::Printf(
-							TEXT("'%s': Modifier 'Attribute Based', attribute '%s' is invalid. Please change it to a valid attribute you have created 'AttributeSet.Attribute'"), *Pair.Key->GetFName().ToString(), *Modifier.BasedOnAttribute.AttributeName);
+						FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+												FString::Printf(TEXT("'%s': Modifier 'Attribute Based', attribute '%s' is invalid. Please change it to a valid attribute you have created 'AttributeSet.Attribute'"), *Pair.Key->GetFName().ToString(), *Modifier.BasedOnAttribute.AttributeName));
 						Results.Add(Result);
 					}
 					break;
@@ -59,11 +50,8 @@ void FModifierValidationRule::Validate(const FGASObjects& Objects, TArray<FGASVa
 				{
 					if (Modifier.CalculationClassReference.CalculationClass == nullptr)
 					{
-						FGASValidationResult Result;
-						Result.RuleName = GetRuleName();
-						Result.Severity = EGASValidationSeverity::ERROR;
-						Result.Message = FString::Printf(
-							TEXT("'%s': Modifier 'Custom Calculation Class', The class is not given. Please give a 'UGameplayModMagnitudeCalculation' class"), *Pair.Key->GetFName().ToString());
+						FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+												FString::Printf(TEXT("'%s': Modifier 'Custom Calculation Class', The class is not given. Please give a 'UGameplayModMagnitudeCalculation' class"), *Pair.Key->GetFName().ToString()));
 						Results.Add(Result);
 					}
 					break;
@@ -72,20 +60,14 @@ void FModifierValidationRule::Validate(const FGASObjects& Objects, TArray<FGASVa
 				{
 					if (!Modifier.CallableTag.IsValid())
 					{
-						FGASValidationResult Result;
-						Result.RuleName = GetRuleName();
-						Result.Severity = EGASValidationSeverity::ERROR;
-						Result.Message = FString::Printf(
-							TEXT("'%s': Modifier 'Set By Caller', Please give a a valid tag 'AttributeSet.Attribute'"), *Pair.Key->GetFName().ToString());
+						FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+												FString::Printf(TEXT("'%s': Modifier 'Set By Caller', Please give a a valid tag 'AttributeSet.Attribute'"), *Pair.Key->GetFName().ToString()));
 						Results.Add(Result);
 					}
 					if(Modifier.CallableName.IsNone())
 					{
-						FGASValidationResult Result;
-						Result.RuleName = GetRuleName();
-						Result.Severity = EGASValidationSeverity::WARNING;
-						Result.Message = FString::Printf(
-							TEXT("'%s': Modifier 'Set By Caller', Can't resolve the name. Check yourself in code or in blueprints if it is set"), *Pair.Key->GetFName().ToString());
+						FGASValidationResult Result = CreateResult(EGASValidationSeverity::WARNING, 
+												FString::Printf(TEXT("'%s': Modifier 'Set By Caller', Can't resolve the name. Check yourself in code or in blueprints if it is set"), *Pair.Key->GetFName().ToString()));
 						Results.Add(Result);
 					}
 					break;

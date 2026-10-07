@@ -24,11 +24,8 @@ void FAbilityReachEffectValidationRule::Validate(const FGASObjects& Objects, TAr
 		{
 			if (!Ref.EffectClass)
 			{
-				FGASValidationResult Result;
-				Result.RuleName = GetRuleName();
-				Result.Severity = EGASValidationSeverity::UNRESOLVED;
-				Result.Message = FString::Printf(
-					TEXT("'%s': Empty Effect class on '%s'. Could be set in code or blueprints but can't check"), *Pair.Key->GetFName().ToString(), *Ref.PropertyName.ToString());
+				FGASValidationResult Result = CreateResult(EGASValidationSeverity::UNRESOLVED, 
+													FString::Printf(TEXT("'%s': Empty Effect class on '%s'. Could be set in code or blueprints but can't check"), *Pair.Key->GetFName().ToString(), *Ref.PropertyName.ToString()));
 				Results.Add(Result);
 				continue; 
 			}
@@ -48,11 +45,8 @@ void FAbilityReachEffectValidationRule::Validate(const FGASObjects& Objects, TAr
 
 		if (!bAnyEffectHasContent)
 		{
-			FGASValidationResult Result;
-			Result.RuleName = GetRuleName();
-			Result.Severity = EGASValidationSeverity::ERROR;
-			Result.Message = FString::Printf(
-				TEXT("'%s': Ability doesn't have any effects that do anything"), *Pair.Key->GetFName().ToString());
+			FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+												FString::Printf(TEXT("'%s': Ability doesn't have any effects that do anything"), *Pair.Key->GetFName().ToString()));
 			Results.Add(Result);
 		}
 	}

@@ -19,21 +19,16 @@ void FConditionalEffectResolveValidationRule::Validate(const FGASObjects& Object
 		for (const auto& ConditionalEffect : Effect.Effects)
 		{
 			if (ConditionalEffect.EffectClass == nullptr)
-			{
-				FGASValidationResult Result;
-				Result.RuleName = GetRuleName();
-				Result.Severity = EGASValidationSeverity::ERROR;
-				Result.Message = FString::Printf(
-					TEXT("'%s':Unset Effect at property '%s'"), *Pair.Key->GetFName().ToString(), *ConditionalEffect.PropertyName.ToString());
+			{				
+				FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+												FString::Printf(TEXT("'%s': Unset Effect at property '%s'"), *Pair.Key->GetFName().ToString(), *ConditionalEffect.PropertyName.ToString()));
 				Results.Add(Result);
 			}
 			else if (ConditionalEffect.EffectClass == Pair.Key)
 			{
-				FGASValidationResult Result;
-				Result.RuleName = GetRuleName();
-				Result.Severity = EGASValidationSeverity::ERROR;
-				Result.Message = FString::Printf(
-					TEXT("'%s': Circular dependency created at property '%s'"), *Pair.Key->GetFName().ToString(), *ConditionalEffect.PropertyName.ToString());
+				FGASValidationResult Result = CreateResult(EGASValidationSeverity::UNRESOLVED, 
+												FString::Printf(TEXT("'%s': Circular dependency created at property '%s'"), *Pair.Key->GetFName().ToString(), *ConditionalEffect.PropertyName.ToString()));
+				
 				Results.Add(Result);
 			}			
 		}

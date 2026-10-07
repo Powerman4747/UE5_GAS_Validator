@@ -30,11 +30,8 @@ void FRequiredTagValidationRule::Validate(const FGASObjects& Objects, TArray<FGA
 			{
 				if (!TagContainer.Container.HasTag(FGameplayTag(Tag)))
 				{
-					FGASValidationResult Result;
-					Result.RuleName = GetRuleName();
-					Result.Severity = EGASValidationSeverity::ERROR;
-					Result.Message = FString::Printf(
-						TEXT("Required tag '%s' does not exist in the required tag container '%s'"), *Tag.ToString(), *TagContainerName.ToString());
+					FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+														FString::Printf(TEXT("Required tag '%s' does not exist in the required tag container '%s'"), *Tag.ToString(), *TagContainerName.ToString()));
 					Results.Add(Result);
 				}
 			}

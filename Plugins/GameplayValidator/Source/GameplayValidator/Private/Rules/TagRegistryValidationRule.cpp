@@ -21,30 +21,21 @@ void FTagRegistryValidationRule::Validate(const FGASObjects& Objects, TArray<FGA
 			{
 				if (!Manager.IsValidGameplayTagString(Tag.ToString()))
 				{
-					FGASValidationResult Result;
-					Result.RuleName = GetRuleName();
-					Result.Severity = EGASValidationSeverity::ERROR;
-					Result.Message = FString::Printf(
-						TEXT("'%s':Tag '%s' in container '%s' isn't in correct format. Please use the correct format 'Parent.Tree.TagName' (no spaces or dots at the end)"), *Pair.Key->GetFName().ToString(), *Tag.ToString(), *Container.PropertyName.ToString());
+					FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+														FString::Printf(TEXT("'%s':Tag '%s' in container '%s' isn't in correct format. Please use the correct format 'Parent.Tree.TagName' (no spaces or dots at the end)"), *Pair.Key->GetFName().ToString(), *Tag.ToString(), *Container.PropertyName.ToString()));
 					Results.Add(Result);
 				}
 				else if (Manager.RequestGameplayTag(Tag.GetTagName()) == FGameplayTag() && Tag.IsValid())
 				{
-					FGASValidationResult Result;
-					Result.RuleName = GetRuleName();
-					Result.Severity = EGASValidationSeverity::ERROR;
-					Result.Message = FString::Printf(
-						TEXT("'%s':Tag '%s' isn't found in '%s'. Please register it in the 'Config.ini' or 'Edit->Project Settings->Project->Gameplay Tags' or use the 'UE_DEFINE_GAMEPLAY_TAG' macro in C++"), *Pair.Key->GetFName().ToString(), *Tag.ToString(), *Container.PropertyName.ToString());
+					FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+														FString::Printf(TEXT("'%s':Tag '%s' isn't found in '%s'. Please register it in the 'Config.ini' or 'Edit->Project Settings->Project->Gameplay Tags' or use the 'UE_DEFINE_GAMEPLAY_TAG' macro in C++"), *Pair.Key->GetFName().ToString(), *Tag.ToString(), *Container.PropertyName.ToString()));
 					Results.Add(Result);
 				}
 				
 				if (!Tag.IsValid())
 				{
-					FGASValidationResult Result;
-					Result.RuleName = GetRuleName();
-					Result.Severity = EGASValidationSeverity::ERROR;
-					Result.Message = FString::Printf(
-						TEXT("'%s': unregistered tag found in '%s'"), *Pair.Key->GetFName().ToString(), *Container.PropertyName.ToString());
+					FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+															FString::Printf(TEXT("'%s': unregistered tag found in '%s'"), *Pair.Key->GetFName().ToString(), *Container.PropertyName.ToString()));
 					Results.Add(Result);
 				}
 			}
