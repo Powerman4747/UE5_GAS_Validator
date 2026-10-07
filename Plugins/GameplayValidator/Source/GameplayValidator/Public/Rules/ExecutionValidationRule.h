@@ -8,9 +8,9 @@
 /**
  * 
  */
-class GAMEPLAYVALIDATOR_API ExecutionValidationRule : public IGASValidationRule
+class GAMEPLAYVALIDATOR_API FExecutionValidationRule : public IGASValidationRule
 {
 public:
-	ExecutionValidationRule();
+	FExecutionValidationRule();
 	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) override final;
 };

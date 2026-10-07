@@ -8,9 +8,9 @@
 /**
  * 
  */
-class GAMEPLAYVALIDATOR_API AbilityToCueValidationRule : public IGASValidationRule
+class GAMEPLAYVALIDATOR_API FAbilityToCueValidationRule : public IGASValidationRule
 {
 public:
-	AbilityToCueValidationRule();
+	FAbilityToCueValidationRule();
 	virtual void Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results) override final;
 };

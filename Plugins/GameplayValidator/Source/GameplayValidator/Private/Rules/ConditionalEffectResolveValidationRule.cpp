@@ -5,12 +5,12 @@
 #include "DataStructures/DiscoveryData.h"
 
 
-ConditionalEffectResolveValidationRule::ConditionalEffectResolveValidationRule() :
+FConditionalEffectResolveValidationRule::FConditionalEffectResolveValidationRule() :
 	IGASValidationRule("ConditionalEffectResolve")
 {
 }
 
-void ConditionalEffectResolveValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
+void FConditionalEffectResolveValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Effects)
 	{

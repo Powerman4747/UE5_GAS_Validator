@@ -3,12 +3,12 @@
 #include "Rules/CalculationAttributesValidationRule.h"
 #include "DataStructures/DiscoveryData.h"
 
-CalculationAttributesValidationRule::CalculationAttributesValidationRule() :
+FCalculationAttributesValidationRule::FCalculationAttributesValidationRule() :
 	IGASValidationRule("CalculationAttributes")
 {
 }
 
-void CalculationAttributesValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
+void FCalculationAttributesValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	for (const auto& Pair : Objects.Calculations)
 	{

@@ -3,12 +3,12 @@
 #include "GameplayTagsManager.h"
 #include "DataStructures/DiscoveryData.h"
 
-TagRegistryValidationRule::TagRegistryValidationRule() :
+FTagRegistryValidationRule::FTagRegistryValidationRule() :
 	IGASValidationRule("TagRegistration")
 {
 }
 
-void TagRegistryValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
+void FTagRegistryValidationRule::Validate(const FGASObjects& Objects, TArray<FGASValidationResult>& Results)
 {
 	auto& Manager = UGameplayTagsManager::Get();
 
