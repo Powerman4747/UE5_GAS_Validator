@@ -1,15 +1,16 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #include "GASDiscoveryInternal.h"
 #include "UObject/UnrealType.h"
+#include "GenericPlatform/GenericPlatformMisc.h"
 
-UClass* GASDiscovery::Private::ResolvePropertyType(FProperty* Property)
+UClass* GASDiscovery::Private::ResolvePropertyType(const FProperty* Property)
 {
-	if (FClassProperty* ClassProperty = CastField<FClassProperty>(Property))
+	if (const FClassProperty* ClassProperty = CastField<FClassProperty>(Property))
 	{
 		return ClassProperty->MetaClass;
 	}
 	
-	if (FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property))
+	if (const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property))
 	{
 		return ObjectProperty->PropertyClass;
 	}
@@ -19,7 +20,7 @@ UClass* GASDiscovery::Private::ResolvePropertyType(FProperty* Property)
 	return nullptr;
 }
 
-UClass* GASDiscovery::Private::ResolveClassValue(FProperty* Property, UObject* Instance)
+UClass* GASDiscovery::Private::ResolveClassValue(const FProperty* Property, const UObject* Instance)
 {
 	if (const FClassProperty* ClassProperty = CastField<FClassProperty>(Property))
 	{
@@ -37,7 +38,7 @@ UClass* GASDiscovery::Private::ResolveClassValue(FProperty* Property, UObject* I
 	return nullptr;
 }
 
-UClass* GASDiscovery::Private::ResolveClassValueFromElement(FProperty* Property, const void* ElementPtr)
+UClass* GASDiscovery::Private::ResolveClassValueFromElement(const FProperty* Property, const void* ElementPtr)
 {
 	if (const FClassProperty* ClassProperty = CastField<FClassProperty>(Property))
 	{
@@ -50,4 +51,32 @@ UClass* GASDiscovery::Private::ResolveClassValueFromElement(FProperty* Property,
 	}
 
 	return nullptr;
+}
+
+const FProperty* GASDiscovery::Private::GetMostInnerProperty(const FArrayProperty* ArrayProperty)
+{
+	const FProperty* Inner = ArrayProperty->Inner;
+	while (const FArrayProperty* Nested = CastField<FArrayProperty>(Inner))
+	{
+		Inner = Nested->Inner;
+	}
+	return Inner;
+}
+
+void GASDiscovery::Private::IterateArray(const FArrayProperty* Property, const void* Instance, const TFunctionRef<void(const FProperty*, const void*)>& Function)
+{
+	FScriptArrayHelper Helper(Property, Instance);
+	const auto ArrayProperty = CastField<FArrayProperty>(Property->Inner);
+	for (int32 i = 0; i < Helper.Num(); ++i)
+	{
+		const uint8* ElementPtr = Helper.GetRawPtr(i);
+		
+		if (ArrayProperty)
+        {
+            IterateArray(ArrayProperty, ElementPtr, Function);
+            continue;
+        }
+
+		Function(Property->Inner, ElementPtr);		
+	}
 }

@@ -191,7 +191,6 @@ void UGASValidator::FindGASObjects(UObject* Object, FGASObjects& GASObjects, TSe
 			{
 				if (StructProp->Struct == FGameplayTagContainer::StaticStruct())
 				{
-					// discover tags
 					GASDiscovery::DiscoverTags(Class, Object, GASObjects);
 				}
 				else
@@ -200,8 +199,23 @@ void UGASValidator::FindGASObjects(UObject* Object, FGASObjects& GASObjects, TSe
 				}
 			}
 			else if (FArrayProperty* ArrayProp = CastField<FArrayProperty>(Property))
-			{
-				UGASValidator::RecurseArray(Class, ArrayProp, Object, GASObjects, VisitedClasses);
+			{	
+				GASDiscovery::Private::IterateArray(ArrayProp, ArrayProp->ContainerPtrToValuePtr<void>(Object), 
+											[&Class, &GASObjects, &VisitedClasses](const FProperty* Property, const void* ElementPtr)
+													{
+														if (const FStructProperty* Struct = CastField<FStructProperty>(Property))
+														{
+															FindGASObjectsInStruct(Class, ElementPtr, Struct->Struct, GASObjects, VisitedClasses);
+														}
+														else if (GASDiscovery::Private::ResolvePropertyType(Property))
+														{
+															UClass* Value = GASDiscovery::Private::ResolveClassValueFromElement(Property, ElementPtr);
+															if (Value && !VisitedClasses.Contains(Value))
+															{
+																FindGASObjects(Value->GetDefaultObject(), GASObjects, VisitedClasses);
+															}
+														}
+													});
 			}
 			continue;
 		}
@@ -225,7 +239,7 @@ void UGASValidator::FindGASObjects(UObject* Object, FGASObjects& GASObjects, TSe
 		const IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Object);
 		if (!ASI)
 		{
-			return; // ImplementsInterface said yes, but Cast failed — shouldn't normally happen, defensive only
+			return;
 		}
 
 		UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent(); // the guarded virtual call
@@ -271,7 +285,6 @@ void UGASValidator::FindGASObjects(UObject* Object, FGASObjects& GASObjects, TSe
 				}
 			}
 		}
-		// Check attributes if exists, if not add anyway add the data to the Discovered attribute
 	}
 }
 
@@ -308,7 +321,22 @@ void UGASValidator::FindGASObjectsInStruct(UClass* Class, const void* StructInst
             }
             else if (FArrayProperty* ArrayProp = CastField<FArrayProperty>(Property))
             {
-            	UGASValidator::RecurseArray(Class, ArrayProp, StructInstance, GASObjects, VisitedClasses);
+            	GASDiscovery::Private::IterateArray(ArrayProp, ArrayProp->ContainerPtrToValuePtr<void>(StructInstance), 
+											[&Class, &GASObjects, &VisitedClasses](const FProperty* Property, const void* ElementPtr)
+													{
+														if (const FStructProperty* Struct = CastField<FStructProperty>(Property))
+														{
+															FindGASObjectsInStruct(Class, ElementPtr, Struct->Struct, GASObjects, VisitedClasses);
+														}
+														else if (GASDiscovery::Private::ResolvePropertyType(Property))
+														{
+															UClass* Value = GASDiscovery::Private::ResolveClassValueFromElement(Property, ElementPtr);
+															if (Value && !VisitedClasses.Contains(Value))
+															{
+																FindGASObjects(Value->GetDefaultObject(), GASObjects, VisitedClasses);
+															}
+														}
+													});
             }
             continue;
         }
@@ -366,30 +394,6 @@ bool UGASValidator::HasGASProperties(UClass* Class)
 	}
 	
 	return false;
-}
-
-void UGASValidator::RecurseArray(UClass* Class, FArrayProperty* Prop, const void* Instance, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses)
-{
-	FScriptArrayHelper Helper(Prop, Prop->ContainerPtrToValuePtr<void>(Instance));
-
-	if (FStructProperty* InnerStruct = CastField<FStructProperty>(Prop->Inner))
-	{
-		for (int32 i = 0; i < Helper.Num(); ++i)
-		{
-			FindGASObjectsInStruct(Class, Helper.GetRawPtr(i), InnerStruct->Struct, GASObjects, VisitedClasses);
-		}
-	}
-	else if (GASDiscovery::Private::ResolvePropertyType(Prop->Inner))
-	{
-		for (int32 i = 0; i < Helper.Num(); ++i)
-		{
-			UClass* Value = GASDiscovery::Private::ResolveClassValueFromElement(Prop->Inner, Helper.GetRawPtr(i));
-			if (Value && !VisitedClasses.Contains(Value))
-			{
-				FindGASObjects(Value->GetDefaultObject(), GASObjects, VisitedClasses);
-			}
-		}
-	}
 }
 
 bool UGASValidator::LogResults(TArray<FGASValidationResult>& Results, FString AssetName)

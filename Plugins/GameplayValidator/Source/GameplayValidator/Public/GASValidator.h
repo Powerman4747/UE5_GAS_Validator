@@ -35,9 +35,6 @@ private:
 	static void FindGASObjectsInStruct(UClass* Class, const void* StructInstance, UScriptStruct* StructType, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
 	static bool HasGASProperties(UClass* Class);
 	
-	// Helper recursion function(s)
-	static void RecurseArray(UClass* Class, FArrayProperty* Prop, const void* Instance, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
-	
 	static bool LogResults(TArray<FGASValidationResult>& Results, FString AssetName = "");
 	static TArray<TSharedRef<IGASValidationRule>> Rules;
 };

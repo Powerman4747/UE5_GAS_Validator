@@ -1,5 +1,6 @@
 ﻿#include "Discovery/GASDiscovery.h"
 #include "GameplayEffectAttributeCaptureDefinition.h"
+#include "GASDiscoveryInternal.h"
 #include "DataStructures/DiscoveryData.h"
 
 FDiscoveredCalculation& GASDiscovery::DiscoverCalculations(UClass* Class, FGASObjects& GASObjects)
@@ -13,29 +14,26 @@ FDiscoveredCalculation& GASDiscovery::DiscoverCalculations(UClass* Class, FGASOb
 	auto* CDO = Class->GetDefaultObject();
 	for (TFieldIterator<FArrayProperty> PropIt(Class); PropIt; ++PropIt)
 	{
-		const FStructProperty* Struct = CastField<FStructProperty>(PropIt->Inner);
-		
-		if (!Struct || Struct->Struct != FGameplayEffectAttributeCaptureDefinition::StaticStruct())
-		{
-			continue;
-		}
-		
-		FScriptArrayHelper Helper(*PropIt, PropIt->ContainerPtrToValuePtr<void>(CDO));
-
-		for (int i = 0; i < Helper.Num(); ++i)
-		{
-			auto* Instance = Helper.GetRawPtr(i);
-			for (TFieldIterator<FStructProperty> StructPropIt(FGameplayEffectAttributeCaptureDefinition::StaticStruct()); StructPropIt; ++StructPropIt)
-			{
-				FStructProperty* StructProp = *StructPropIt;
-				if (StructPropIt->Struct != FGameplayAttribute::StaticStruct())
-				{
-					continue;
-				}
+		Private::IterateArray(*PropIt, PropIt->ContainerPtrToValuePtr<void>(CDO), 
+			[&Calculation](const FProperty* Property, const void* ElementPtr)
+						{
+							const FStructProperty* Struct = CastField<FStructProperty>(Property);
+							if (!Struct)
+							{
+								return;
+							}
 				
-				Calculation.CapturedAttributes.Add(*StructProp->ContainerPtrToValuePtr<FGameplayAttribute>(Instance));
-			}
-		}
+							for (TFieldIterator<FStructProperty> StructPropIt(Struct->Struct); StructPropIt; ++StructPropIt)
+							{
+								FStructProperty* StructProp = *StructPropIt;
+								if (StructPropIt->Struct != FGameplayAttribute::StaticStruct())
+								{
+									continue;
+								}
+							
+								Calculation.CapturedAttributes.Add(*StructProp->ContainerPtrToValuePtr<FGameplayAttribute>(ElementPtr));
+							}
+						});
 	}
 	
 	GASObjects.Calculations.Add(Class, Calculation);

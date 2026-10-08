@@ -8,7 +8,10 @@ class UObject;
 
 namespace GASDiscovery::Private
 {
-	UClass* ResolvePropertyType(FProperty* Property);
-	UClass* ResolveClassValue(FProperty* Property, UObject* Instance);
-	UClass* ResolveClassValueFromElement(FProperty* Property, const void* ElementPtr);
+	UClass* ResolvePropertyType(const FProperty* Property);
+	UClass* ResolveClassValue(const FProperty* Property, const UObject* Instance);
+	UClass* ResolveClassValueFromElement(const FProperty* Property, const void* ElementPtr);
+
+	const FProperty* GetMostInnerProperty(const FArrayProperty* ArrayProperty);
+	void IterateArray(const FArrayProperty* Property, const void* Instance, const TFunctionRef<void(const FProperty*, const void*)>& Function);
 }
