@@ -25,10 +25,7 @@ FDiscoveredAbility& GASDiscovery::DiscoverAbility(UClass* Class, FGASObjects& GA
 		if (PropertyType->IsChildOf(UGameplayEffect::StaticClass()))
 		{
 			auto* ReferencedClass = Private::ResolveClassValue(Property, CDO);
-			FDiscoveredEffectReference EffectReference;
-			EffectReference.PropertyName = Property->GetFName();
-			EffectReference.EffectClass = ReferencedClass;
-			
+			FDiscoveredEffectReference EffectReference = GASDiscovery::Private::Effect::CreateEffectReference(Property, ReferencedClass);			
 			Ability.Effects.Add(EffectReference);
 		}
 	}

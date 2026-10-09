@@ -4,25 +4,8 @@
 #include "Discovery/GASDiscovery.h"
 #include "DataStructures/DiscoveryData.h"
 #include "GASDiscoveryInternal.h"
-#include "UObject/UnrealTypePrivate.h"
 
 namespace {
-	FDiscoveredEffectReference CreateEffectReference(const FProperty* Property, UClass* EffectClass)
-	{
-		FDiscoveredEffectReference Ref;
-		Ref.PropertyName = Property->GetFName();
-		Ref.EffectClass = EffectClass;
-		return Ref;
-	}
-	
-	FDiscoveredCalculationReference CreateCalculationReference(FProperty* Property, const void* Instance)
-	{
-		FDiscoveredCalculationReference Ref;
-		UClass* CalcClass = GASDiscovery::Private::ResolveClassValueFromElement(Property, Instance);				                                	
-		Ref.PropertyName = Property->GetFName();
-		Ref.CalculationClass = CalcClass;
-		return Ref;
-	}
 
 	FDiscoveredEffectReference GetEffectReferenceFromGEComponents(const FProperty* Property, const void* ElementPtr)
 	{
@@ -32,7 +15,7 @@ namespace {
 			if (ClassProp->MetaClass->IsChildOf(UGameplayEffect::StaticClass()))
 			{
 				UClass* ElementValue = Cast<UClass>(ClassProp->GetObjectPropertyValue(ElementPtr));
-				Ref = CreateEffectReference(Property, ElementValue);
+				Ref = GASDiscovery::Private::Effect::CreateEffectReference(Property, ElementValue);
 			}
 		}
 		else if (const FStructProperty* StructProp = CastField<FStructProperty>(Property))
@@ -40,12 +23,12 @@ namespace {
 			if (StructProp->Struct == FConditionalGameplayEffect::StaticStruct())
 			{
 				const auto* Conditional = static_cast<const FConditionalGameplayEffect*>(ElementPtr);
-				Ref = CreateEffectReference(Property, Conditional->EffectClass);
+				Ref = GASDiscovery::Private::Effect::CreateEffectReference(Property, Conditional->EffectClass);
 			}
 			else if (StructProp->Struct == FGameplayEffectQuery::StaticStruct())
 			{
 				const auto* Query = static_cast<const FGameplayEffectQuery*>(ElementPtr);
-				Ref = CreateEffectReference(Property, Query->EffectDefinition);													
+				Ref = GASDiscovery::Private::Effect::CreateEffectReference(Property, Query->EffectDefinition);													
 			}
 		}
 		
@@ -65,7 +48,7 @@ namespace {
 				continue;
 			}
 			
-			Ref = CreateCalculationReference(*CustomPropIt, CustomPtr);
+			Ref = GASDiscovery::Private::Effect::CreateCalculationReference(*CustomPropIt, CustomPtr);
 			break;
 		}
 
@@ -226,7 +209,7 @@ namespace {
 			UClass* PropertyType = GASDiscovery::Private::ResolvePropertyType(Property);
 			if (PropertyType && PropertyType->IsChildOf(UGameplayEffect::StaticClass()))
 			{
-				FDiscoveredEffectReference Ref = CreateEffectReference(Property, GASDiscovery::Private::ResolveClassValue(Property, ComponentInstance));
+				FDiscoveredEffectReference Ref = GASDiscovery::Private::Effect::CreateEffectReference(Property, GASDiscovery::Private::ResolveClassValue(Property, ComponentInstance));
 				EffectReferences.Add(Ref);
 			}
 			else if(FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Property))
@@ -250,8 +233,7 @@ namespace {
 		auto* PropertyType = GASDiscovery::Private::ResolvePropertyType(Property);
         if (PropertyType->IsChildOf(UGameplayEffectCalculation::StaticClass()))
         {
-        	FDiscoveredCalculationReference Execution;
-        	Execution = CreateCalculationReference(Property, ElementPtr);
+        	FDiscoveredCalculationReference Execution = GASDiscovery::Private::Effect::CreateCalculationReference(Property, ElementPtr);
         	Execution.PropertyName = Property->GetFName();						
         	if (Execution.CalculationClass)
         	{

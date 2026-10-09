@@ -1,5 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 #include "GASDiscoveryInternal.h"
+
+#include "DataStructures/DiscoveryData.h"
 #include "UObject/UnrealType.h"
 #include "GenericPlatform/GenericPlatformMisc.h"
 
@@ -79,4 +81,23 @@ void GASDiscovery::Private::IterateArray(const FArrayProperty* Property, const v
 
 		Function(Property->Inner, ElementPtr);		
 	}
+}
+
+FDiscoveredEffectReference& GASDiscovery::Private::Effect::CreateEffectReference(const FProperty* Property,
+	UClass* EffectClass)
+{
+	FDiscoveredEffectReference Ref;
+	Ref.PropertyName = Property->GetFName();
+	Ref.EffectClass = EffectClass;
+	return Ref;
+}
+
+FDiscoveredCalculationReference& GASDiscovery::Private::Effect::CreateCalculationReference(const FProperty* Property,
+                                                                                           const void* Instance)
+{
+	FDiscoveredCalculationReference Ref;
+	UClass* CalcClass = GASDiscovery::Private::ResolveClassValueFromElement(Property, Instance);				                                	
+	Ref.PropertyName = Property->GetFName();
+	Ref.CalculationClass = CalcClass;
+	return Ref;
 }

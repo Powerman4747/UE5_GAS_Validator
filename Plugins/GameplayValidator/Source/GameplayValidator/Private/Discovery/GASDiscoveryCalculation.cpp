@@ -14,6 +14,7 @@ FDiscoveredCalculation& GASDiscovery::DiscoverCalculations(UClass* Class, FGASOb
 	auto* CDO = Class->GetDefaultObject();
 	for (TFieldIterator<FArrayProperty> PropIt(Class); PropIt; ++PropIt)
 	{
+		// Find Captured Attributes
 		Private::IterateArray(*PropIt, PropIt->ContainerPtrToValuePtr<void>(CDO), 
 			[&Calculation](const FProperty* Property, const void* ElementPtr)
 						{
