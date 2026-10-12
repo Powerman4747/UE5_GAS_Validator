@@ -153,7 +153,18 @@ namespace {
                 for (TFieldIterator<FProperty> MagPropIt(FGameplayEffectModifierMagnitude::StaticStruct()); MagPropIt; ++MagPropIt)
                 {
                     FProperty* MagProperty = *MagPropIt;
+                	
+                	if(FEnumProperty* MagEnumProp = CastField<FEnumProperty>(MagProperty))
+                	{
+                		if (MagEnumProp->GetEnum())
+                        {
+                			const EGameplayEffectMagnitudeCalculation* ValuePtr = MagEnumProp->ContainerPtrToValuePtr<EGameplayEffectMagnitudeCalculation>(MagnitudePtr);
 
+                			// Read the enum's numeric value.
+                			DiscoveredModifier.TypeOfCalculation = *ValuePtr;
+                        }
+                	}
+                		
                     if (FStructProperty* MagStructProp = CastField<FStructProperty>(MagProperty))
                     {
                         // CustomCalculationClass mode
@@ -161,7 +172,7 @@ namespace {
                         {
                             DiscoveredModifier.CalculationClassReference = GetCustomCalculationClassFromModifier(MagStructProp, MagnitudePtr);
 	                        
-	                        if (!DiscoveredModifier.CalculationClassReference.CalculationClass)
+	                        if (DiscoveredModifier.CalculationClassReference.CalculationClass)
 	                        {
 		                        GASDiscovery::DiscoverCalculations(DiscoveredModifier.CalculationClassReference.CalculationClass, GASObjects);
 	                        }
@@ -191,7 +202,7 @@ namespace {
 		return DiscoveredModifier;
 	}
 	
-	TArray<FDiscoveredEffectReference>& DiscoverGEComponents(const FObjectProperty* ObjectProperty, const void* ElementPtr, FGASObjects& GASObjects)
+	TArray<FDiscoveredEffectReference> DiscoverGEComponents(const FObjectProperty* ObjectProperty, const void* ElementPtr, FGASObjects& GASObjects)
 	{
 		TArray<FDiscoveredEffectReference> EffectReferences;
 		
@@ -227,7 +238,7 @@ namespace {
 		return EffectReferences;
 	}
 	
-	TArray<FDiscoveredCalculationReference>& DiscoverExecution(FClassProperty* Property, const void* ElementPtr, FGASObjects& GASObjects)
+	TArray<FDiscoveredCalculationReference> DiscoverExecution(FClassProperty* Property, const void* ElementPtr, FGASObjects& GASObjects)
 	{
 		TArray<FDiscoveredCalculationReference> Executions;
 		auto* PropertyType = GASDiscovery::Private::ResolvePropertyType(Property);
@@ -310,7 +321,7 @@ FDiscoveredEffect& GASDiscovery::DiscoverEffect(UClass* Class, FGASObjects& GASO
 								continue;
 							}
 							
-							auto& Executions = DiscoverExecution(ClassProperty, ElementPtr, GASObjects);
+							auto Executions = DiscoverExecution(ClassProperty, ElementPtr, GASObjects);
 							Effect.Executions.Append(Executions);							
 						}						
 					}

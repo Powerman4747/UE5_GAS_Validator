@@ -28,7 +28,9 @@ public class GameplayValidator : ModuleRules
 				"GameplayAbilities", 
 				"GameplayTags", 
 				"GameplayTasks",
-				"DataValidation"
+				"DataValidation",
+				"BlueprintGraph",
+				"UnrealEd"
 			}
 			);
 			

@@ -11,9 +11,10 @@
 
 #include "Engine/Blueprint.h"
 #include "Editor.h"
-#include "GameplayCueSet.h"
 #include "GameplayEffectComponent.h"
 #include "GameplayModMagnitudeCalculation.h"
+#include "K2Node_CallFunction.h"
+#include "K2Node_Event.h"
 #include "DataStructures/DiscoveryData.h"
 #include "Rules/AbilityReachEffectValidationRule.h"
 #include "Rules/CalculationAttributesValidationRule.h"
@@ -26,6 +27,7 @@
 #include "DataStructures/ValidationResult.h"
 #include "Discovery/GASDiscovery.h"
 #include "Discovery/GASDiscoveryInternal.h"
+#include "GameplayEffect.h"
 
 
 TArray<TSharedRef<IGASValidationRule>> UGASValidator::Rules;
@@ -125,7 +127,8 @@ bool UGASValidator::CanValidateAsset_Implementation(const FAssetData& InAssetDat
 EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset,
                                                          FDataValidationContext& Context)
 {
-	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+	UBlueprint* Blueprint = Cast<UBlueprint>(InAsset);
+	if (Blueprint)
 	{
 		if (Blueprint->GeneratedClass)
 		{
@@ -135,6 +138,11 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 	FGASObjects Objects;
 	TSet<UClass*> VisitedSet;
 	FindGASObjects(InAsset, Objects, VisitedSet);
+	
+	if(Blueprint)
+	{
+		FindGASObjectsInBlueprint(Blueprint, Objects, VisitedSet);
+	}
 	
 	TArray<FGASValidationResult> Results;
 	for (auto Rule : Rules)
@@ -353,6 +361,20 @@ void UGASValidator::FindGASObjectsInStruct(UClass* Class, const void* StructInst
     		FindGASObjects(CDO, GASObjects, VisitedClasses);
     	}
     }
+}
+
+void UGASValidator::FindGASObjectsInBlueprint(UBlueprint* Blueprint, FGASObjects& GASObjects,
+	TSet<UClass*>& VisitedClasses)
+{
+	UClass* AbilityClass = Blueprint->GeneratedClass;
+	
+	// Only Ability has gameplay logic
+	if (!AbilityClass || !AbilityClass->IsChildOf(UGameplayAbility::StaticClass()))
+	{
+		return;
+	}
+	
+	GASDiscovery::DiscoverAbilityInBlueprint(Blueprint, GASObjects);
 }
 
 bool UGASValidator::HasGASProperties(UClass* Class)

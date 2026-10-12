@@ -10,6 +10,7 @@ struct FDiscoveredCalculation;
 namespace GASDiscovery
 {
 	FDiscoveredAbility& DiscoverAbility(UClass* Class, FGASObjects& GASObjects);
+	FDiscoveredAbility& DiscoverAbilityInBlueprint(UBlueprint* Class, FGASObjects& GASObjects);
 	FDiscoveredEffect& DiscoverEffect(UClass* Class, FGASObjects& GASObjects);
 	TArray<FDiscoveredAttribute>& DiscoverAttributes(UClass* Class, FGASObjects& GASObjects);
 	TArray<FDiscoveredTagContainer>& DiscoverTags(UClass* Class, const void* Instance, FGASObjects& GASObjects);

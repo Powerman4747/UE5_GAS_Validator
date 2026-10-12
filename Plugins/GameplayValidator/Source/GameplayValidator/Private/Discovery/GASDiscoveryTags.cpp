@@ -23,6 +23,8 @@ TArray<FDiscoveredTagContainer>& GASDiscovery::DiscoverTags(UClass* Class, const
 		TagContainers.Add(TagContainer);
 	}
 	
-	GASObjects.TagContainers.FindOrAdd(Class).Append(TagContainers);
-	return *GASObjects.TagContainers.Find(Class);
+	auto& ExistingTagContainers = GASObjects.TagContainers.FindOrAdd(Class);
+	ExistingTagContainers.Append(TagContainers);
+	
+	return ExistingTagContainers;
 }

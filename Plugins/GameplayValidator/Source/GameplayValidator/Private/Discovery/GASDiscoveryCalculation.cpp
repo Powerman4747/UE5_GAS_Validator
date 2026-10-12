@@ -1,5 +1,4 @@
 ﻿#include "Discovery/GASDiscovery.h"
-#include "GameplayEffectAttributeCaptureDefinition.h"
 #include "GASDiscoveryInternal.h"
 #include "DataStructures/DiscoveryData.h"
 
@@ -37,6 +36,6 @@ FDiscoveredCalculation& GASDiscovery::DiscoverCalculations(UClass* Class, FGASOb
 						});
 	}
 	
-	GASObjects.Calculations.Add(Class, Calculation);
-	return *GASObjects.Calculations.Find(Class);
+	
+	return GASObjects.Calculations.Add(Class, Calculation);;
 }

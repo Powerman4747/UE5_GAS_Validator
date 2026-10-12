@@ -30,6 +30,8 @@ struct FDiscoveredEffectReference
 {
 	FName PropertyName; // could be Cost or Cooldown
 	TSubclassOf<UGameplayEffect> EffectClass;
+	bool bWasDeclaredButUnresolved = false;
+	bool bStaticallyUnresolvable = false;
 };
 
 struct FDiscoveredCalculationReference
@@ -40,7 +42,7 @@ struct FDiscoveredCalculationReference
 
 struct FDiscoveredModifier
 {
-	FGameplayAttribute Attribute; // do not like this bu needs to have for checking... has no value
+	FGameplayAttribute Attribute;
 	
 	EGameplayEffectMagnitudeCalculation TypeOfCalculation;
 	
@@ -74,6 +76,8 @@ struct FDiscoveredEffect
 struct FDiscoveredAbility
 {
 	TArray<FDiscoveredEffectReference> Effects;
+	bool bHasActivateAbilityEvent = false;
+	bool bActivateAbilityHasLogic = false;
 };
 
 

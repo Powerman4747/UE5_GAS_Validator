@@ -14,6 +14,7 @@
 
 
 class IGASValidationRule;
+class UBlueprint;
 struct FGASObjects;
 
 UCLASS()
@@ -33,6 +34,7 @@ private:
 	// Find the GAS Objects
 	static void FindGASObjects(UObject* Class, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses);	
 	static void FindGASObjectsInStruct(UClass* Class, const void* StructInstance, UScriptStruct* StructType, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
+	static void FindGASObjectsInBlueprint(UBlueprint* Blueprint, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses);	
 	static bool HasGASProperties(UClass* Class);
 	
 	static bool LogResults(TArray<FGASValidationResult>& Results, FString AssetName = "");

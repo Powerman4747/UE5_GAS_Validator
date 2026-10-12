@@ -83,16 +83,18 @@ void GASDiscovery::Private::IterateArray(const FArrayProperty* Property, const v
 	}
 }
 
-FDiscoveredEffectReference& GASDiscovery::Private::Effect::CreateEffectReference(const FProperty* Property,
+FDiscoveredEffectReference GASDiscovery::Private::Effect::CreateEffectReference(const FProperty* Property,
 	UClass* EffectClass)
 {
 	FDiscoveredEffectReference Ref;
 	Ref.PropertyName = Property->GetFName();
 	Ref.EffectClass = EffectClass;
+	Ref.bWasDeclaredButUnresolved = !EffectClass;
+	Ref.bStaticallyUnresolvable = false;
 	return Ref;
 }
 
-FDiscoveredCalculationReference& GASDiscovery::Private::Effect::CreateCalculationReference(const FProperty* Property,
+FDiscoveredCalculationReference GASDiscovery::Private::Effect::CreateCalculationReference(const FProperty* Property,
                                                                                            const void* Instance)
 {
 	FDiscoveredCalculationReference Ref;
@@ -101,3 +103,23 @@ FDiscoveredCalculationReference& GASDiscovery::Private::Effect::CreateCalculatio
 	Ref.CalculationClass = CalcClass;
 	return Ref;
 }
+
+bool GASDiscovery::Private::DoesClassOverrideFunction(FName FunctionName, UClass* Class)
+{
+	UFunction* Function = Class->FindFunctionByName(FunctionName);
+	if (!Function)
+	{
+		return false;
+	}
+
+	bool bThisClassProvidesIt = (Function->GetOwnerClass() == Class);
+	if (!bThisClassProvidesIt)
+	{
+		return false;
+	}
+
+	bool bIsNative = Function->HasAnyFunctionFlags(FUNC_Native);
+
+	return bIsNative;
+}
+

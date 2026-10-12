@@ -9,7 +9,7 @@
 /**
  * 
  */
-class GAMEPLAYVALIDATOR_API FRequiredTagValidationRule : IGASValidationRule
+class GAMEPLAYVALIDATOR_API FRequiredTagValidationRule : public IGASValidationRule
 {
 public:
 	FRequiredTagValidationRule(FName InClassInClassName, FName InTagContainerName, TArray<FName> InTag);

@@ -16,11 +16,13 @@ namespace GASDiscovery::Private
 
 	const FProperty* GetMostInnerProperty(const FArrayProperty* ArrayProperty);
 	void IterateArray(const FArrayProperty* Property, const void* Instance, const TFunctionRef<void(const FProperty*, const void*)>& Function);
+	
+	bool DoesClassOverrideFunction(FName FunctionName, UClass* Class);
 }
 
 namespace GASDiscovery::Private::Effect
 {
-	FDiscoveredEffectReference& CreateEffectReference(const FProperty* Property, UClass* EffectClass);
+	FDiscoveredEffectReference CreateEffectReference(const FProperty* Property, UClass* EffectClass);
 	
-	FDiscoveredCalculationReference& CreateCalculationReference(const FProperty* Property, const void* Instance);
+	FDiscoveredCalculationReference CreateCalculationReference(const FProperty* Property, const void* Instance);
 }
