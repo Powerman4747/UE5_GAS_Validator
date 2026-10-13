@@ -26,11 +26,21 @@ public:
 	template<typename T, typename... TArgs>
 	static void AddRule(TArgs&&... Args);
 	
+	template<typename T, typename... TArgs>
+	static void AddBatchRule(TArgs&&... Args);
+	
 protected:
 	virtual bool CanValidateAsset_Implementation(const FAssetData& InAssetData, UObject* InObject, FDataValidationContext& InContext) const override;
 	virtual EDataValidationResult ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset, FDataValidationContext& Context) override;
 	
 private:
+	static bool CanValidate(UObject* Asset);
+	static void Validate(UObject* Asset, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
+	
+	// helper function
+	static void DiscoverNativeClasses (const TArray<UClass*>& Class, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses, FScopedSlowTask& SlowTask);
+
+	
 	// Find the GAS Objects
 	static void FindGASObjects(UObject* Class, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses);	
 	static void FindGASObjectsInStruct(UClass* Class, const void* StructInstance, UScriptStruct* StructType, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses);
@@ -38,13 +48,20 @@ private:
 	static bool HasGASProperties(UClass* Class);
 	
 	static bool LogResults(TArray<FGASValidationResult>& Results, FString AssetName = "");
-	static TArray<TSharedRef<IGASValidationRule>> Rules;
+	static TArray<TSharedRef<IGASValidationRule>> BatchRules;
+	static TArray<TSharedRef<IGASValidationRule>> AssetRules;
 };
 
 template <typename T, typename... TArgs>
 void UGASValidator::AddRule(TArgs&&... Args)
 {
-	Rules.Add(MakeShared<T>(Forward<TArgs>(Args)...));
+	AssetRules.Add(MakeShared<T>(Forward<TArgs>(Args)...));
+}
+
+template <typename T, typename... TArgs>
+void UGASValidator::AddBatchRule(TArgs&&... Args)
+{
+	BatchRules.Add(MakeShared<T>(Forward<TArgs>(Args)...));
 }
 
 #define GAS_VALIDATION_REGISTER_RULE(RuleClass, ...)									\
@@ -55,6 +72,16 @@ namespace																				\
 		UGASValidator::AddRule<RuleClass>(__VA_ARGS__);									\
 		return true;																	\
 }();																					\
+}
+
+#define GAS_VALIDATION_REGISTER_BATCH_RULE(RuleClass, ...)									\
+namespace																				\
+{																						\
+	inline const auto CONCAT(GAS_VALIDATION_BATCH_RULE_, __COUNTER__) = []()                  \
+	{                                                                                   \
+		UGASValidator::AddBatchRule<RuleClass>(__VA_ARGS__);									\
+		return true;																	\
+	}();																					\
 }
 
 #define CONCAT(a, b) CONCAT_IMPL(a, b)

@@ -2,19 +2,16 @@
 
 #include "GASValidator.h"
 
+
 #include "AbilitySystemInterface.h"
 #include "GASValidatorLog.h"
 #include "EditorValidatorSubsystem.h"
 #include "AssetRegistry/AssetRegistryModule.h"
-#include "AttributeSet.h"
 #include "AbilitySystemComponent.h"
 
 #include "Engine/Blueprint.h"
 #include "Editor.h"
 #include "GameplayEffectComponent.h"
-#include "GameplayModMagnitudeCalculation.h"
-#include "K2Node_CallFunction.h"
-#include "K2Node_Event.h"
 #include "DataStructures/DiscoveryData.h"
 #include "Rules/AbilityReachEffectValidationRule.h"
 #include "Rules/CalculationAttributesValidationRule.h"
@@ -27,10 +24,10 @@
 #include "DataStructures/ValidationResult.h"
 #include "Discovery/GASDiscovery.h"
 #include "Discovery/GASDiscoveryInternal.h"
-#include "GameplayEffect.h"
 
 
-TArray<TSharedRef<IGASValidationRule>> UGASValidator::Rules;
+TArray<TSharedRef<IGASValidationRule>> UGASValidator::AssetRules;
+TArray<TSharedRef<IGASValidationRule>> UGASValidator::BatchRules;
 
 #ifndef USE_NO_STANDARD_RULES
 GAS_VALIDATION_REGISTER_RULE(FNonZeroValidationRule); 
@@ -45,55 +42,60 @@ GAS_VALIDATION_REGISTER_RULE(FAbilityReachEffectValidationRule);
 void UGASValidator::RunValidator()
 {
 	UE_LOG(LogGASValidator, Log, TEXT("GAS Validator started"));
-
-	UEditorValidatorSubsystem* ValidatorSubsystem = GEditor->GetEditorSubsystem<UEditorValidatorSubsystem>();
 	
-	FValidateAssetsSettings Settings;
-	Settings.bShowIfNoFailures = true;
-
+	// Get assets from Content
 	FAssetRegistryModule& AssetRegistryModule =
-		FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-
+	FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	TArray<FAssetData> AssetDataList;
-	AssetRegistryModule.Get().GetAssetsByPath(FName("/Game"), AssetDataList, true);
+        AssetRegistryModule.Get().GetAssetsByPath(FName("/Game"), AssetDataList, true);
 	
-	if (AssetDataList.Num() <= 0)
-	{
-		UE_LOG(LogGASValidator, Log, TEXT("No assets to validate"));
-	}
+	// Get C++ classes
+	TArray<UClass*> AbilityNativeClasses;
+	GetDerivedClasses(UGameplayAbility::StaticClass(), AbilityNativeClasses, true);
 	
-	// NEW: separately handle native classes, which the above will never reach
-	TArray<UClass*> NativeClasses;
-	GetDerivedClasses(UGameplayAbility::StaticClass(), NativeClasses, true);
+	TArray<UClass*> EffectNativeClasses;
+	GetDerivedClasses(UGameplayEffect::StaticClass(), EffectNativeClasses, true);
+	
+	// Create Dialog
+	auto AmountOfAssetsToCheck = AssetDataList.Num() + AbilityNativeClasses.Num() + EffectNativeClasses.Num();
+	FScopedSlowTask SlowTask(AmountOfAssetsToCheck, FText::FromString(TEXT("Validating GAS assets...")));
+	SlowTask.MakeDialog(true);
+	
 	
 	FGASObjects Objects;
 	TSet<UClass*> VisitedClasses;
-	for (UClass* Class : NativeClasses)
+	DiscoverNativeClasses(AbilityNativeClasses, Objects, VisitedClasses, SlowTask);
+	DiscoverNativeClasses(EffectNativeClasses, Objects, VisitedClasses, SlowTask);
+	
+	for (auto& AssetData : AssetDataList)
 	{
-		if (Class->ClassGeneratedBy != nullptr) continue; // skip Blueprint-generated
+		if (SlowTask.ShouldCancel())
+        {
+            break;
+        }
 		
-		FindGASObjects(Class->GetDefaultObject(), Objects, VisitedClasses);
+		SlowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Discovering: %s"), *AssetData.AssetName.ToString())));
+		
+		auto* Asset = AssetData.GetAsset();
+
+		if (!CanValidate(Asset))
+		{
+			continue;
+		}
+		
+		Validate(Asset, Objects, VisitedClasses);
 	}
 	
-	NativeClasses.Empty();
-	GetDerivedClasses(UGameplayEffect::StaticClass(), NativeClasses, true);
-	for (UClass* Class : NativeClasses)
-	{
-		if (Class->ClassGeneratedBy != nullptr) continue; // skip Blueprint-generated
-		
-		FindGASObjects(Class->GetDefaultObject(), Objects, VisitedClasses);
-	}
+	auto Rules = AssetRules;
+	Rules.Append(BatchRules);
 	
 	TArray<FGASValidationResult> ValidationResults;
 	for (auto Rule : Rules)
 	{
 		Rule->Validate(Objects, ValidationResults);
 	}
-	
+
 	LogResults(ValidationResults);
-	
-	FValidateAssetsResults Results;
-	ValidatorSubsystem->ValidateAssetsWithSettings(AssetDataList, Settings, Results);
 	
 	UE_LOG(LogGASValidator, Log, TEXT("GAS Validator ended"));
 }
@@ -101,51 +103,19 @@ void UGASValidator::RunValidator()
 bool UGASValidator::CanValidateAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset,
 	FDataValidationContext& InContext) const
 {
-	UClass* ClassToCheck = InAsset->GetClass();
-
-    if (const UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
-    {
-        ClassToCheck = Blueprint->GeneratedClass;
-    }
-
-    if (!ClassToCheck)
-    {
-        return false;
-    }
-
-    if (ClassToCheck->IsChildOf(UGameplayAbility::StaticClass())
-        || ClassToCheck->IsChildOf(UGameplayEffect::StaticClass())
-        || ClassToCheck->IsChildOf(UAttributeSet::StaticClass())
-        || ClassToCheck->ImplementsInterface(UAbilitySystemInterface::StaticClass()))
-    {
-        return true;
-    }
-	
-	return UGASValidator::HasGASProperties(ClassToCheck);
+	return CanValidate(InAsset);
 }
 
 EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset,
                                                          FDataValidationContext& Context)
 {
-	UBlueprint* Blueprint = Cast<UBlueprint>(InAsset);
-	if (Blueprint)
-	{
-		if (Blueprint->GeneratedClass)
-		{
-			InAsset = Blueprint->GeneratedClass->GetDefaultObject();
-		}
-	}
 	FGASObjects Objects;
-	TSet<UClass*> VisitedSet;
-	FindGASObjects(InAsset, Objects, VisitedSet);
+ 	TSet<UClass*> VisitedSet;
 	
-	if(Blueprint)
-	{
-		FindGASObjectsInBlueprint(Blueprint, Objects, VisitedSet);
-	}
+	Validate(InAsset, Objects, VisitedSet);
 	
 	TArray<FGASValidationResult> Results;
-	for (auto Rule : Rules)
+	for (auto Rule : AssetRules)
 	{
 		Rule->Validate(Objects, Results);
 	}
@@ -375,6 +345,67 @@ void UGASValidator::FindGASObjectsInBlueprint(UBlueprint* Blueprint, FGASObjects
 	}
 	
 	GASDiscovery::DiscoverAbilityInBlueprint(Blueprint, GASObjects);
+}
+
+bool UGASValidator::CanValidate(UObject* Asset)
+{
+	UClass* ClassToCheck = Asset->GetClass();
+
+	if (const UBlueprint* Blueprint = Cast<UBlueprint>(Asset))
+	{
+		ClassToCheck = Blueprint->GeneratedClass;
+	}
+
+	if (!ClassToCheck)
+	{
+		return false;
+	}
+
+	if (ClassToCheck->IsChildOf(UGameplayAbility::StaticClass())
+		|| ClassToCheck->IsChildOf(UGameplayEffect::StaticClass())
+		|| ClassToCheck->IsChildOf(UAttributeSet::StaticClass())
+		|| ClassToCheck->ImplementsInterface(UAbilitySystemInterface::StaticClass()))
+	{
+		return true;
+	}
+	
+	return UGASValidator::HasGASProperties(ClassToCheck);
+}
+
+void UGASValidator::Validate(UObject* Asset, FGASObjects& GASObjects, TSet<UClass*>& VisitedSet)
+{
+	UBlueprint* Blueprint = Cast<UBlueprint>(Asset);
+	if (Blueprint)
+	{
+		if (Blueprint->GeneratedClass)
+		{
+			Asset = Blueprint->GeneratedClass->GetDefaultObject();
+		}
+	}
+	
+	FindGASObjects(Asset, GASObjects, VisitedSet);
+	
+	if(Blueprint)
+	{
+		FindGASObjectsInBlueprint(Blueprint, GASObjects, VisitedSet);
+	}
+}
+
+void UGASValidator::DiscoverNativeClasses(const TArray<UClass*>& Classes, FGASObjects& GASObjects,
+	TSet<UClass*>& VisitedClasses, FScopedSlowTask& SlowTask)
+{
+	for (UClass* Class : Classes)
+    {
+    	if (SlowTask.ShouldCancel())
+    	{
+    		break;
+    	}
+    	SlowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Discovering: %s"), *Class->GetName())));
+
+    	if (Class->ClassGeneratedBy != nullptr) continue; // skip Blueprint-generated
+    	
+    	FindGASObjects(Class->GetDefaultObject(), GASObjects, VisitedClasses);
+    }
 }
 
 bool UGASValidator::HasGASProperties(UClass* Class)
