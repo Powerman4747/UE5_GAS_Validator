@@ -40,7 +40,7 @@ FDiscoveredAbility& GASDiscovery::DiscoverAbility(UClass* Class, FGASObjects& GA
 
 FDiscoveredAbility& GASDiscovery::DiscoverAbilityInBlueprint(UBlueprint* Blueprint, FGASObjects& GASObjects)
 {
-	FDiscoveredAbility& DiscoveredAbility = GASDiscovery::DiscoverAbility(Blueprint->GeneratedClass->GetClass(), GASObjects);
+	FDiscoveredAbility& DiscoveredAbility = GASDiscovery::DiscoverAbility(Blueprint->GeneratedClass, GASObjects);
 
 	TArray<FName> GameplayEffectFunctions = { "ApplyGameplayEffectToTarget", "ApplyGameplayEffectToOwner", "ApplyGameplayEffectSpecToTarget", "BP_ApplyGameplayEffectToTarget", "ApplyGameplayEffectSpecToSelf" };
 	
