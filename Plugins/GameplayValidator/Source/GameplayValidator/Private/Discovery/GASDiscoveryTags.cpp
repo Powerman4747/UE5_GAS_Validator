@@ -1,30 +1,20 @@
 ﻿#include "Discovery/GASDiscovery.h"
 #include "DataStructures/DiscoveryData.h"
 
-TArray<FDiscoveredTagContainer>& GASDiscovery::DiscoverTags(UClass* Class, const void* Instance, FGASObjects& GASObjects)
+TArray<FDiscoveredTagContainer>& GASDiscovery::DiscoverTags(UClass* Class, const FStructProperty* Property, const void* Instance, FGASObjects& GASObjects)
 {
-	if (auto* DiscoveredTag = GASObjects.TagContainers.Find(Class))
+	auto& TagContainers = GASObjects.TagContainers.FindOrAdd(Class);
+	
+	if (Property->Struct != FGameplayTagContainer::StaticStruct())
 	{
-		return *DiscoveredTag;
+		return TagContainers;
 	}
-
-	TArray<FDiscoveredTagContainer> TagContainers;
-	for (TFieldIterator<FStructProperty> PropIt(Class); PropIt; ++PropIt)
-	{
-		const FStructProperty* StructProp = *PropIt;
-		if (StructProp->Struct != FGameplayTagContainer::StaticStruct())
-		{
-			continue;
-		}
 		
-		FDiscoveredTagContainer TagContainer;
-		TagContainer.Container = *StructProp->ContainerPtrToValuePtr<FGameplayTagContainer>(Instance);
-		TagContainer.PropertyName = StructProp->GetFName();		
-		TagContainers.Add(TagContainer);
-	}
+	FDiscoveredTagContainer TagContainer;
+	TagContainer.Container = *static_cast<const FGameplayTagContainer*>(Instance);
+	TagContainer.PropertyName = Property->GetFName();		
 	
-	auto& ExistingTagContainers = GASObjects.TagContainers.FindOrAdd(Class);
-	ExistingTagContainers.Append(TagContainers);
+	TagContainers.Add(TagContainer);
 	
-	return ExistingTagContainers;
+	return TagContainers;
 }

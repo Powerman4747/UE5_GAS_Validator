@@ -13,6 +13,6 @@ namespace GASDiscovery
 	FDiscoveredAbility& DiscoverAbilityInBlueprint(UBlueprint* Class, FGASObjects& GASObjects);
 	FDiscoveredEffect& DiscoverEffect(UClass* Class, FGASObjects& GASObjects);
 	TArray<FDiscoveredAttribute>& DiscoverAttributes(UClass* Class, FGASObjects& GASObjects);
-	TArray<FDiscoveredTagContainer>& DiscoverTags(UClass* Class, const void* Instance, FGASObjects& GASObjects);
+	TArray<FDiscoveredTagContainer>& DiscoverTags(UClass* Class, const FStructProperty* Property, const void* Instance, FGASObjects& GASObjects);
 	FDiscoveredCalculation& DiscoverCalculations(UClass* Class, FGASObjects& GASObjects);
 }
