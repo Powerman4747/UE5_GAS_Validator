@@ -24,10 +24,13 @@
 #include "DataStructures/ValidationResult.h"
 #include "Discovery/GASDiscovery.h"
 #include "Discovery/GASDiscoveryInternal.h"
+#include "Abilities/GameplayAbility_CharacterJump.h"
+#include "Abilities/GameplayAbility_Montage.h"
 
 
 TArray<TSharedRef<IGASValidationRule>> UGASValidator::AssetRules;
 TArray<TSharedRef<IGASValidationRule>> UGASValidator::BatchRules;
+TSet<const UClass*> UGASValidator::IgnoredClasses;
 
 #ifndef USE_NO_STANDARD_RULES
 GAS_VALIDATION_REGISTER_RULE(FNonZeroValidationRule); 
@@ -38,6 +41,10 @@ GAS_VALIDATION_REGISTER_RULE(FExecutionValidationRule);
 GAS_VALIDATION_REGISTER_RULE(FCalculationAttributesValidationRule);
 GAS_VALIDATION_REGISTER_RULE(FAbilityReachEffectValidationRule);
 #endif
+
+GAS_VALIDATION_REGISTER_IGNORED_CLASS(UGameplayAbility_CharacterJump);
+GAS_VALIDATION_REGISTER_IGNORED_CLASS(UGameplayAbility_Montage);
+
 
 void UGASValidator::RunValidator()
 {
@@ -169,7 +176,7 @@ void UGASValidator::FindGASObjects(UObject* Object, FGASObjects& GASObjects, TSe
 			{
 				if (StructProp->Struct == FGameplayTagContainer::StaticStruct())
 				{
-					GASDiscovery::DiscoverTags(Class, Object, GASObjects);
+                    GASDiscovery::DiscoverTags(Class, StructProp, StructProp->ContainerPtrToValuePtr<void>(Object), GASObjects);
 				}
 				else
 				{
@@ -285,7 +292,7 @@ void UGASValidator::FindGASObjectsInStruct(UClass* Class, const void* StructInst
             {
                 if (StructProp->Struct == FGameplayTagContainer::StaticStruct())
                 {
-                    GASDiscovery::DiscoverTags(Class, StructInstance, GASObjects);
+                    GASDiscovery::DiscoverTags(Class, StructProp, StructProp->ContainerPtrToValuePtr<void>(StructInstance), GASObjects);
                 }
                 else
                 {
@@ -350,13 +357,13 @@ void UGASValidator::FindGASObjectsInBlueprint(UBlueprint* Blueprint, FGASObjects
 bool UGASValidator::CanValidate(UObject* Asset)
 {
 	UClass* ClassToCheck = Asset->GetClass();
-
+	
 	if (const UBlueprint* Blueprint = Cast<UBlueprint>(Asset))
 	{
 		ClassToCheck = Blueprint->GeneratedClass;
 	}
-
-	if (!ClassToCheck)
+	
+	if (!ClassToCheck || ClassToCheck->HasAnyClassFlags(CLASS_Abstract))
 	{
 		return false;
 	}
@@ -401,8 +408,8 @@ void UGASValidator::DiscoverNativeClasses(const TArray<UClass*>& Classes, FGASOb
     		break;
     	}
     	SlowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Discovering: %s"), *Class->GetName())));
-
-    	if (Class->ClassGeneratedBy != nullptr) continue; // skip Blueprint-generated
+		
+    	if (Class->ClassGeneratedBy != nullptr || Class->HasAnyClassFlags(CLASS_Abstract) || IgnoredClasses.Contains(Class)) continue; // skip Blueprint-generated
     	
     	FindGASObjects(Class->GetDefaultObject(), GASObjects, VisitedClasses);
     }
