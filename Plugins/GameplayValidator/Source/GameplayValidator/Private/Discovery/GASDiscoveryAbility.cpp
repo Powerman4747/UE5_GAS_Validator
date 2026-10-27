@@ -57,11 +57,11 @@ FDiscoveredAbility& GASDiscovery::DiscoverAbilityInBlueprint(UBlueprint* Bluepri
 			if (Node.IsA(UK2Node_Event::StaticClass()))
 			{
 				const auto* EventNode = Cast<UK2Node_Event>(Node);
-				if (EventNode->EventReference.GetMemberName() == "ActivateAbility")
+				if (EventNode->EventReference.GetMemberName() == "K2_ActivateAbility")
 				{
 					DiscoveredAbility.bHasActivateAbilityEvent = true;
 
-					const UEdGraphPin* Pin = Node->FindPin(FName("exec"), EGPD_Output);
+					const UEdGraphPin* Pin = Node->FindPin(FName("then"), EGPD_Output);
 					if (Pin && !Pin->LinkedTo.IsEmpty())
 					{
 						// has logic
@@ -89,7 +89,7 @@ FDiscoveredAbility& GASDiscovery::DiscoverAbilityInBlueprint(UBlueprint* Bluepri
 				
 				if (Pin->LinkedTo.IsEmpty())
 				{
-					const auto& ResolvedClass = Pin->DefaultObject ? Pin->DefaultObject->GetClass() : nullptr;
+					const auto& ResolvedClass = Pin->DefaultObject ? Cast<UClass>(Pin->DefaultObject) : nullptr;
 					Ref.EffectClass = ResolvedClass;
 					Ref.bWasDeclaredButUnresolved = !ResolvedClass;
 					Ref.bStaticallyUnresolvable = false;

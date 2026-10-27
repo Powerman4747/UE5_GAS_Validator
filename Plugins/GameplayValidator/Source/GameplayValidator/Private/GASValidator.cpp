@@ -464,11 +464,57 @@ int UGASValidator::LogResults(TArray<FGASValidationResult>& Results, FString Ass
 	
 	for (auto Result : Results)
 	{
-		UE_LOG(LogGASValidator, Log, TEXT("%s: %s"), *AssetName, *Result.Message)
-		
-		if (Result.Severity == EGASValidationSeverity::ERROR)
+		switch (Result.Severity)
 		{
-			errors++;
+		case EGASValidationSeverity::ERROR:
+			{
+				if (!AssetName.IsEmpty())
+				{
+					UE_LOG(LogGASValidator, Error, TEXT("[%s]: %s"), *AssetName, *Result.Message);
+				}
+				else
+				{
+					UE_LOG(LogGASValidator, Error, TEXT("%s"), *Result.Message);
+				}
+				errors++;
+			}
+			break;
+		case EGASValidationSeverity::WARNING:
+			{
+				if (!AssetName.IsEmpty())
+				{
+					UE_LOG(LogGASValidator, Warning, TEXT("[%s]: %s"), *AssetName, *Result.Message);
+				}
+				else
+				{
+					UE_LOG(LogGASValidator, Warning, TEXT("%s"), *Result.Message);
+				}
+			}
+			break;
+		case EGASValidationSeverity::UNRESOLVED:
+			{
+				if (!AssetName.IsEmpty())
+				{
+					UE_LOG(LogGASValidator, Display, TEXT("[%s]: %s"), *AssetName, *Result.Message);
+				}
+				else
+				{
+					UE_LOG(LogGASValidator, Display, TEXT("%s"), *Result.Message);
+				}
+			}
+			break;
+		case EGASValidationSeverity::INFO:
+			{
+				if (!AssetName.IsEmpty())
+				{
+					UE_LOG(LogGASValidator, Log, TEXT("[%s]: %s"), *AssetName, *Result.Message);
+				}
+				else
+				{
+					UE_LOG(LogGASValidator, Log, TEXT("%s"), *Result.Message);
+				}
+			}
+			break;
 		}
 	}
 	
