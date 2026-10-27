@@ -43,11 +43,13 @@ void FAbilityReachEffectValidationRule::Validate(const FGASObjects& Objects, TAr
 			}
 		}
 
-		if (!bAnyEffectHasContent)
+		if (bAnyEffectHasContent || Ability.bActivateAbilityHasLogic)
 		{
-			FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
-												FString::Printf(TEXT("'%s': Ability doesn't have any effects that do anything"), *Pair.Key->GetFName().ToString()));
-			Results.Add(Result);
+			return
 		}
+		
+		FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+											FString::Printf(TEXT("'%s': Ability doesn't have any effects that do anything"), *Pair.Key->GetFName().ToString()));
+		Results.Add(Result);
 	}
 }

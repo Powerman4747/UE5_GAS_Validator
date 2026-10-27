@@ -28,7 +28,11 @@ FDiscoveredAbility& GASDiscovery::DiscoverAbility(UClass* Class, FGASObjects& GA
 		{
 			auto* ReferencedClass = Private::ResolveClassValue(Property, CDO);
 			FDiscoveredEffectReference EffectReference = GASDiscovery::Private::Effect::CreateEffectReference(Property, ReferencedClass);			
-			Ability.Effects.Add(EffectReference);
+			
+			if (ReferencedClass)
+			{
+				Ability.Effects.Add(EffectReference);
+			}
 		}
 	}
 	
