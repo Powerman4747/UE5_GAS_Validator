@@ -36,8 +36,10 @@ void FGameplayValidatorModule::AddValidationButton()
 	INVTEXT("Validate GAS"),
 	INVTEXT("Validate the Gameplay Ability System (GAS)"),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "DeveloperTools.MenuIcon"),
-			FUIAction(FExecuteAction::CreateStatic(&UGASValidator::RunValidator
-	)));
+			FUIAction(FExecuteAction::CreateLambda([]()
+				{
+					UGASValidator::RunValidator();
+				})));
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -30,7 +30,7 @@ void FModifierValidationRule::Validate(const FGASObjects& Objects, TArray<FGASVa
 				{
 					if (FMath::IsNearlyZero(Modifier.FloatValue))
 					{
-						FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 
+						FGASValidationResult Result = CreateResult(EGASValidationSeverity::WARNING, 
 												FString::Printf(TEXT("'%s': Modifer 'Scalable float', it doesn't do anything, because value is '%f'"), *Pair.Key->GetFName().ToString(), Modifier.FloatValue));
 						Results.Add(Result);
 					}
@@ -66,7 +66,7 @@ void FModifierValidationRule::Validate(const FGASObjects& Objects, TArray<FGASVa
 					}
 					if(Modifier.CallableName.IsNone())
 					{
-						FGASValidationResult Result = CreateResult(EGASValidationSeverity::WARNING, 
+						FGASValidationResult Result = CreateResult(EGASValidationSeverity::UNRESOLVED, 
 												FString::Printf(TEXT("'%s': Modifier 'Set By Caller', Can't resolve the name. Check yourself in code or in blueprints if it is set"), *Pair.Key->GetFName().ToString()));
 						Results.Add(Result);
 					}

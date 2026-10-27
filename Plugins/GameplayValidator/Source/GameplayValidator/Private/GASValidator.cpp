@@ -46,7 +46,7 @@ GAS_VALIDATION_REGISTER_IGNORED_CLASS(UGameplayAbility_CharacterJump);
 GAS_VALIDATION_REGISTER_IGNORED_CLASS(UGameplayAbility_Montage);
 
 
-void UGASValidator::RunValidator()
+int UGASValidator::RunValidator()
 {
 	UE_LOG(LogGASValidator, Log, TEXT("GAS Validator started"));
 	
@@ -102,9 +102,11 @@ void UGASValidator::RunValidator()
 		Rule->Validate(Objects, ValidationResults);
 	}
 
-	LogResults(ValidationResults);
+	int errors = LogResults(ValidationResults);
 	
 	UE_LOG(LogGASValidator, Log, TEXT("GAS Validator ended"));
+	
+	return errors;
 }
 
 bool UGASValidator::CanValidateAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset,
@@ -127,9 +129,9 @@ EDataValidationResult UGASValidator::ValidateLoadedAsset_Implementation(const FA
 		Rule->Validate(Objects, Results);
 	}
 	
-	bool bHasError = UGASValidator::LogResults(Results, InAsset->GetName());
+	int errors = UGASValidator::LogResults(Results, InAsset->GetName());
 	
-	if (bHasError)
+	if (errors > 0)
 	{
 		AssetFails(InAsset, FText::FromString(TEXT("GAS validation failed - see errors above")));
 		return EDataValidationResult::Invalid;
@@ -456,9 +458,9 @@ bool UGASValidator::HasGASProperties(UClass* Class)
 	return false;
 }
 
-bool UGASValidator::LogResults(TArray<FGASValidationResult>& Results, FString AssetName)
+int UGASValidator::LogResults(TArray<FGASValidationResult>& Results, FString AssetName)
 {
-	bool bHasError = false;
+	int errors = 0;
 	
 	for (auto Result : Results)
 	{
@@ -466,9 +468,9 @@ bool UGASValidator::LogResults(TArray<FGASValidationResult>& Results, FString As
 		
 		if (Result.Severity == EGASValidationSeverity::ERROR)
 		{
-			bHasError = true;
+			errors++;
 		}
 	}
 	
-	return bHasError;
+	return errors;
 }

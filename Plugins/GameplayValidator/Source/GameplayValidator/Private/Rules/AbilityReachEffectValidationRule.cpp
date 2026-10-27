@@ -45,7 +45,7 @@ void FAbilityReachEffectValidationRule::Validate(const FGASObjects& Objects, TAr
 
 		if (bAnyEffectHasContent || Ability.bActivateAbilityHasLogic)
 		{
-			return
+			continue;
 		}
 		
 		FGASValidationResult Result = CreateResult(EGASValidationSeverity::ERROR, 

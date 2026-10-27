@@ -22,7 +22,7 @@ class GAMEPLAYVALIDATOR_API UGASValidator : public UEditorValidatorBase
 {
 	GENERATED_BODY()
 public:
-	static void RunValidator();	
+	static int RunValidator();	
 	
 	template<typename T, typename... TArgs>
 	static void AddRule(TArgs&&... Args);
@@ -50,7 +50,7 @@ private:
 	static void FindGASObjectsInBlueprint(UBlueprint* Blueprint, FGASObjects& GASObjects, TSet<UClass*>& VisitedClasses);	
 	static bool HasGASProperties(UClass* Class);
 	
-	static bool LogResults(TArray<FGASValidationResult>& Results, FString AssetName = "");
+	static int LogResults(TArray<FGASValidationResult>& Results, FString AssetName = "");
 	static TArray<TSharedRef<IGASValidationRule>> BatchRules;
 	static TArray<TSharedRef<IGASValidationRule>> AssetRules;
 	static TSet<const UClass*> IgnoredClasses;
